@@ -45,11 +45,3 @@ base.metadata.bind = engine
 session = orm.scoped_session(orm.sessionmaker())(bind=engine)
 
 metadata = MetaData()
-
-from mailcleaner_db.models import User
-
-
-
-# print("User (find_by_domain): {}".format(User.find_by_domain("toto.local")))
-# print("User (find_by_username): {}".format(User.find_by_username("newton")))
-# print("User (find_by_pref): {}".format(User.find_by_pref(8)))
