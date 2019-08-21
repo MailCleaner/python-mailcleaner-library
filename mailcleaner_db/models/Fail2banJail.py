@@ -22,12 +22,6 @@ class Fail2banJail(base, BaseModel):
     banaction = Column(String(50), nullable=False)
     logpath = Column(String(250), nullable=False)
 
-    def __repr__(self):
-        return "<Fail2banJail id={} enabled={} name={} " \
-               "maxretry={} findtime={} bantime={} port={} filter={} banaction={} logpath={}>\n"\
-                .format(self.id, self.enabled, self.name, self.maxretry, self.findtime, self.bantime, self.port,
-                       self.filter, self.banaction, self.logpath)
-
     @classmethod
     def find_by_id(cls, id: int):
         return session.query(Fail2banJail).filter_by(id=id).first()

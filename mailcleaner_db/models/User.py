@@ -15,9 +15,6 @@ class User(base, BaseModel):
     domain = Column(String(200), nullable=True)
     pref = Column(Integer, nullable=True, default=1)
 
-    def __repr__(self):
-        return "<User id={} username={} domain={} pref={}>\n".format(self.id, self.username, self.domain, self.pref)
-
     @classmethod
     def find_by_id(cls, id: int):
         return session.query(User).filter_by(id=id).first()

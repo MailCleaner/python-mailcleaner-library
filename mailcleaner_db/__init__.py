@@ -19,12 +19,21 @@ class DBPort(Enum):
     SLAVE = 3307
 
 
-def get_db_connection_uri(database: str = DBConfig.DB_NAME.value, master: bool = True) -> str:
+def is_master():
+    """
+    Determine if we're running code on a MailCleaner master or slave node.
+    :return: True if it's a master, False otherwise
+    """
+    return Config.get_instance().get_value("ISMASTER").upper() == "Y"
+
+
+def get_db_connection_uri(database: str = DBConfig.DB_NAME.value, master: bool = is_master()) -> str:
     """
     Generate the database URLs for connecting SQLAlchemy.
     The MySQL URL connection should looks like dialect+driver://username:password@host:port/database
     :param database: the database to connect to
-    :param master: boolean value to determine if we want to connect to master mysql instance or slave
+    :param master: boolean value to determine if we want to connect to master mysql instance or slave. Currently value is automatic
+    by looking at via the ``is_master`` function.
     :return: a str containing the database URL
     """
 

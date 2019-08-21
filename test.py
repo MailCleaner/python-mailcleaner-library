@@ -1,4 +1,4 @@
-from mailcleaner_db.models import User, Commtouch, WWLists
+from mailcleaner_db.models import User, Commtouch, WWLists, MTAConfig, SystemConf
 
 commtouch = Commtouch()
 c = commtouch.all()
@@ -13,3 +13,13 @@ print(newton)
 wwlists = WWLists()
 lists = wwlists.all()
 print(lists)
+
+exim_stage1 = MTAConfig().find_by_set_id_and_stage_id(set_id=1, stage_id=1)
+print(exim_stage1)
+exim_stage1.reject_bad_spf = False
+exim_stage1.save()
+print(exim_stage1)
+
+
+system_conf = SystemConf.first()
+print(system_conf)

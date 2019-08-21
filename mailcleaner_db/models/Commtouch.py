@@ -14,5 +14,3 @@ class Commtouch(base, BaseModel):
     ctasdLicense = Column(String(250), nullable=True)
     ctipdLicense = Column(String(200), nullable=True)
 
-    def __repr__(self):
-        return "<Commtouch set_id={} ctasdLicense={} ctipdLicense={} >\n".format(self.set_id, self.ctasdLicense, self.ctipdLicense)

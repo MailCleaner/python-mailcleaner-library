@@ -19,11 +19,6 @@ class Fail2banIps(base, BaseModel):
     whitelisted = Column(Boolean, nullable=True, default=False)
     jail = Column(String(20), nullable=False)
 
-    def __repr__(self):
-        return "<Fail2banIps id={} ip={} count={} " \
-               "active={} blacklisted={} whitelisted={} jail={}>\n".\
-            format(self.id, self.ip, self.count, self.active, self.blacklisted, self.whitelisted, self.jail)
-
     @classmethod
     def find_by_id(cls, id: int):
         return session.query(Fail2banIps).filter_by(id=id).first()

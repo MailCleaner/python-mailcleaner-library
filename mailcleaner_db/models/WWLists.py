@@ -18,10 +18,6 @@ class WWLists(base, BaseModel):
     status = Column(Integer, default=1)
     comments = Column(BLOB)
 
-    def __repr__(self):
-        return "<wwlists id={} sender={} recipient={} type={} expiracy={} status={} comments={}>\n"\
-            .format(self.id, self.sender, self.recipient, self.type, self.expiracy, self.status, self.comments)
-
     @classmethod
     def find_by_sender(cls, sender: str):
         return session.query(WWLists).filter_by(sender=sender).all()
