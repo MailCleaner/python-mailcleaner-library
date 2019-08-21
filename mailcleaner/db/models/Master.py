@@ -6,7 +6,7 @@ from . import BaseModel
 
 class Master(base, BaseModel):
     """
-    Fail2banJail table
+    Master table
     """
     __tablename__ = 'master'
 
