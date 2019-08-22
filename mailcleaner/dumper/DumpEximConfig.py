@@ -26,10 +26,6 @@ class DumpEximConfig(MailCleanerBaseDump):
         """
         Dump all exim stages configuration files.
         """
-        # Avoid having unsychronized database when starting a new VA
-        if os.path.exists(self._mc_config.get_value("VARDIR") + "/run/configurator/updater4mc-ran"):
-            self.binary_log_keep = 21
-
         self.dump_exim_stage_1()
         self.dump_exim_stage_2()
         self.dump_exim_stage_4()

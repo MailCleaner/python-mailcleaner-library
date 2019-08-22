@@ -1,4 +1,4 @@
-# MailClenaer DB Python Package
+# Python MailClenaer Package 
 
 This package is a high level Python API for interacting with MailCleaner core components such as databases, dumpers etc.
 
@@ -20,6 +20,9 @@ python --version
 python3 --version
 ```
 
+> **Note:** For installing Python 3: https://www.python.org/downloads/
+
+
 ### Installation
 
 Until the package isn't available on a Python repository (such as [https://pypi.org/](pypi)), you have to go to package
@@ -28,6 +31,17 @@ sources and then run the installation thanks to the setuptools:
 ```shell
 ➜  mailcleaner: python3 setup.py install
 ```
+
+### Development
+
+For improving the current library, you need to first install dependencies with ``pip3``
+
+```shell
+➜  mailcleaner: pip3 install -r requirements.txt
+```
+
+> **Note:** For installing pip3: https://pip.pypa.io/en/stable/installing/
+
 
 ### Packages
 
