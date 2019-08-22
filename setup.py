@@ -1,12 +1,12 @@
-from setuptools import setup
-import setuptools
+#!/usr/bin/env python3
+from setuptools import setup, find_packages
 
-setup(name='mailcleaner_db',
-      version='0.1.1',
-      description='API to connect to MailCleaners mailcleaner_db',
+setup(name='mailcleaner',
+      version='0.1',
+      description='MailCleaner Python API',
       url='https://github.com/MailCleaner/mailcleaner_db',
       author='Mentor Reka',
       author_email='reka@mailcleaner.net',
       license='GPL',
-      packages=['mailcleaner_db', 'mailcleaner_db.config', 'mailcleaner_db.models'],
+      packages=find_packages(),
       zip_safe=False)

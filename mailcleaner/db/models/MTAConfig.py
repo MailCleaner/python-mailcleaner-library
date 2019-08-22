@@ -1,9 +1,10 @@
+#!/usr/bin/env python3
 import enum
 
-from mailcleaner_db import base, session
+from mailcleaner.db import base, session
 from sqlalchemy import Column, String, BLOB, Boolean, Enum
 from sqlalchemy.dialects.mysql import INTEGER
-from mailcleaner_db.models.BaseModel import BaseModel
+from . import BaseModel
 
 
 class MTAConfigBooleanEnum(enum.Enum):

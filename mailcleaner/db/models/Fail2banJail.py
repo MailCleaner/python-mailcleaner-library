@@ -1,7 +1,8 @@
-from mailcleaner_db import base, session
+#!/usr/bin/env python3
+from mailcleaner.db import base, session
 from sqlalchemy import Column, Integer, String, Boolean
 
-from mailcleaner_db.models.BaseModel import BaseModel
+from . import BaseModel
 
 
 class Fail2banJail(base, BaseModel):

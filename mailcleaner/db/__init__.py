@@ -1,13 +1,16 @@
+#!/usr/bin/env python3
 from enum import Enum
 
 from sqlalchemy import orm, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 import sqlalchemy as db
-from mailcleaner_config import Config
+from mailcleaner.config import MailCleanerConfig
 
-from mailcleaner_db.config import DBConfig
+from mailcleaner.db.config import DBConfig
 
 """
+Creation and initialization of database session.
+
 @TODO
  - Add logs on MailCleaner for this package
  - Add tests for this package
@@ -24,7 +27,7 @@ def is_master():
     Determine if we're running code on a MailCleaner master or slave node.
     :return: True if it's a master, False otherwise
     """
-    return Config.get_instance().get_value("ISMASTER").upper() == "Y"
+    return MailCleanerConfig.get_instance().get_value("ISMASTER").upper() == "Y"
 
 
 def get_db_connection_uri(database: str = DBConfig.DB_NAME.value, master: bool = is_master()) -> str:
@@ -37,7 +40,7 @@ def get_db_connection_uri(database: str = DBConfig.DB_NAME.value, master: bool =
     :return: a str containing the database URL
     """
 
-    mysql_uri_connection = 'mysql+pymysql://' + DBConfig.DB_USER.value + ":" + Config.get_instance().get_value('MYMAILCLEANERPWD') + "@"
+    mysql_uri_connection = 'mysql+pymysql://' + DBConfig.DB_USER.value + ":" + DBConfig.DB_PASSWORD.value + "@"
     if master:
         mysql_uri_connection += ":" + str(DBPort.MASTER.value)
     else:

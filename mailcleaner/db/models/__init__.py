@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+from .BaseModel import BaseModel
 from .Commtouch import Commtouch
 from .User import User
 from .Fail2banIps import Fail2banIps

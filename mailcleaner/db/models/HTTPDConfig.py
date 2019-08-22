@@ -1,10 +1,8 @@
-import enum
-
-from mailcleaner_db import base, session
-from sqlalchemy import Column, String, BLOB, Boolean, Enum
+#!/usr/bin/env python3
+from mailcleaner.db import base, session
+from sqlalchemy import Column, String, BLOB, Boolean
 from sqlalchemy.dialects.mysql import INTEGER
-from mailcleaner_db.models.BaseModel import BaseModel
-from sqlalchemy.dialects.mysql import TIME
+from . import BaseModel
 
 
 class HTTPDConfig(base, BaseModel):

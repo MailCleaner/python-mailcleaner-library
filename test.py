@@ -1,4 +1,5 @@
-from mailcleaner_db.models import User, Commtouch, WWLists, MTAConfig, SystemConf
+#!/usr/bin/env python3
+from mailcleaner import User, Commtouch, WWLists, MTAConfig, SystemConf
 
 commtouch = Commtouch()
 c = commtouch.all()

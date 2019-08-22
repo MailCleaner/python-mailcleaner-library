@@ -1,7 +1,10 @@
-from mailcleaner_db import base, session
+#!/usr/bin/env python3
+import factory
+
+from mailcleaner.db import base, session
 from sqlalchemy import Column, Integer, String
 
-from mailcleaner_db.models.BaseModel import BaseModel
+from . import BaseModel
 
 
 class User(base, BaseModel):
@@ -36,3 +39,11 @@ class User(base, BaseModel):
         return session.query(User).filter_by(pref=user_pref).first()
 
 
+class UserFactory(factory.Factory):
+    id = factory.Sequence(lambda n: n)
+    username = factory.Sequence(lambda n: 'john%s' % n)
+    domain = factory.Sequence(lambda n: 'domain%s' % n)
+    pref = factory.Sequence(lambda n: n)
+
+    class Meta:
+        model = User

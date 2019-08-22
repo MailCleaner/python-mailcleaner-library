@@ -1,12 +1,120 @@
-# MailClenaer DB Python Package
+## MailClenaer DB Python Package
 
-The aim of this package is to provide a common API for interacting with MailCleaner databases in Python.
+This package is a high level Python API for interacting with MailCleaner core components such as databases, dumpers etc.
 
 For this, we use the recognized [SQLAlchemy](https://www.sqlalchemy.org/) ORM.
 
 
-TO DO:
+## Installation
+
+Until the package isn't available on a Python repository (such as [https://pypi.org/](pypi)), you have to go to package
+sources and then run the installation thanks to the setuptools:
+
+```shell
+➜  mailcleaner: python3 setup.py install
+```
+
+## Packages
+
+### mailcleaner.db
+
+This package contains everything related to database interaction. You'll see for the moment two package:
+
+- ``mailcleaner.db.models``: this package contains models for interacting with MailCleaner databases.
+- ``mailcleaner.db.config``: who contains and should contains all configuration sutff relative to database.
+
+### mailcleaner.dumpers
+
+This package contains all classes used for dumping MailCleaner services configurations files.
+
+## Use
+
+Take a look at the examples package.
+
+Here are some examples of mailcleaner package use:
+
+```python
+from mailcleaner import get_db_connection_uri, DBConfig
+
+from mailcleaner.db.models import User, WWLists, MTAConfig
+
+# -------------------------------------------------------------
+# Example of MailCleaner Databases examples
+# -------------------------------------------------------------
+
+# find, update and finally delete a database object
+user = User.find_by_id(12)
+user.username = "MySuperNewUsername"
+user.save()
+print(user) # <User: { domain = 'toto.local', id = 12, pref = 2, username = 'MySuperNewUsername'}>
+user.delete()
+# Every model on mailcleaner.db.models are printable thanks to the method __repr__ of BaseModel
+
+# get all users, the first and the last (usable by every Models)
+user.all()
+user.first()
+user.last()
+
+# get white-warn-black lists of a user
+# warning: relation doesn't exists between tables in MailCleaner.
+user = User.find_by_username_and_domain(username="tim.cook", domain="apple.ch")
+tim_cook_wwlists = WWLists.find_by_sender(sender=str(user.username + user.domain))
+
+# get database connection URI to the slave and master on mc_config db
+get_db_connection_uri(database=DBConfig.DB_NAME.value, master=False)
+get_db_connection_uri(database=DBConfig.DB_NAME.value, master=True)
+
+# get database connection URI to the slave and master on mc_spool db
+# mc_spool models doesn't exists, you should create them if needed
+get_db_connection_uri(database="mc_spool", master=False)
+get_db_connection_uri(database="mc_spool", master=True)
+
+# -------------------------------------------------------------
+# Example of MailCleaner Configuration class
+# -------------------------------------------------------------
+
+# MailCleanerConfig is a Singleton
+from mailcleaner.config import MailCleanerConfig
+
+mailcleaner_config = MailCleanerConfig.get_instance()
+client_id = mailcleaner_config.get_value("CLIENTID")
+host_id = mailcleaner_config.get_value("HOSTID")
+
+# -------------------------------------------------------------
+# Example of MailCleaner Dumpers
+# -------------------------------------------------------------
+
+from mailcleaner.dumper import DumpEximConfig
+
+# Generate configuration content of exim_stage2.conf
+exim_config = DumpEximConfig()
+mta_config = MTAConfig.find_by_set_id_and_stage_id(set_id=1, stage_id=2)
+exim_stage2_config = exim_config.generate_config(template_config_src_file="etc/exim/exim_stage2.conf_template",
+                                                 config_datas={"header_txt": mta_config.header_txt})
+print(exim_stage2_config) # Contains the exim_stage2.conf content
+
+# Dump the configuration of exim_stage2 in place. Will get the exim_stage2.conf_template and write
+# the exim_stage2.conf in place (replace current content).
+exim_config.dump_exim_stage_2()
+```
+
+## Tests
+
+There are two kind of tests:
+
+1) Unit
+2) Integration
+
+For running tests: ``python3 -m pytest -s --verbose tests/``
+
+For running tests with coverage: ``python3 -m pytest  --cov=mailcleaner -s --verbose tests/``
+
+We use pytest and [factoryboy](https://factoryboy.readthedocs.io/en/latest/introduction.html)
+
+## TO DO:
 
 * Add a flexible way to choose on which database instance to interact with. By default, every writes should be done on
 the master of the cluster and every reads on the slave of the current host (where the code is ran). There is no ready solution
 on SQLAlchemy however here is a begin with which we can work: https://stackoverflow.com/questions/12093956/how-to-separate-master-slave-db-read-writes-in-flask-sqlalchemy
+* Because of fail2ban and not available python3.7 package under Debian Jessie, we used Python 3.4 but we should migrate the proejct to 3.7
+(no issue should be encoutered)
