@@ -93,7 +93,7 @@ Here are some examples of mailcleaner package use:
     # get white-warn-black lists of a user
     # warning: relation doesn't exists between tables in MailCleaner.
     user = User.find_by_username_and_domain(username="tim.cook", domain="apple.ch")
-    tim_cook_wwlists = WWLists.find_by_sender(sender=str(user.username + user.domain))
+    tim_cook_wwlists = WWLists.find_by_sender(sender=str(user.username + "@" + user.domain))
     
     # get database connection URI to the slave and master on mc_config db
     get_db_connection_uri(database=DBConfig.DB_NAME.value, master=False)
