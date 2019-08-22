@@ -70,13 +70,12 @@ Configuration stuff.
 Here are some examples of mailcleaner package use:
 
 ```python
-    from mailcleaner import get_db_connection_uri, DBConfig
-    
-    from mailcleaner.db.models import User, WWLists, MTAConfig
     
     # -------------------------------------------------------------
     # Example of mailcleaner.db package
     # -------------------------------------------------------------
+    from mailcleaner import get_db_connection_uri, DBConfig
+    from mailcleaner.db.models import User, WWLists, MTAConfig
     
     # find, update and finally delete a database object
     user = User.find_by_id(12)
