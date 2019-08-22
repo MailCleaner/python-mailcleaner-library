@@ -133,6 +133,8 @@ Here are some examples of mailcleaner package use:
     exim_config.dump_exim_stage_2()
 ```
 
+You can see a real use case for dump scripts here: https://github.com/MailCleaner/python-mailcleaner-dump-scripts
+
 ### Tests
 ---
 
