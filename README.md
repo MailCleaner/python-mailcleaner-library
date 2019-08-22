@@ -183,4 +183,6 @@ on SQLAlchemy however here is a begin with which we can work: https://stackoverf
 * Based on what has been done, complete the creation of all models.
 * Based on what has been done, complete the creation of all dumpers.
 * Develop tools for configuration under ``mailcleaner.configurator`` such as changing host_id, db password, etc.
-* **IMPORTANT:** Based on what has been done, complete the creation of both unit and integration tests. 
+* **IMPORTANT:** Based on what has been done, complete the creation of both unit and integration tests. For this point, we should also
+extract Models factory created for tests. Take a look at the bottom of User model class and UserFactory class. We should extract this to a 
+different package dedicated to tests.
