@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 
 setup(name='mailcleaner',
       version='0.1',
-      description='MailCleaner Python API',
-      url='https://github.com/MailCleaner/mailcleaner_db',
+      description='MailCleaner Python Library',
+      url='https://github.com/MailCleaner/python-mailcleaner-library',
       author='Mentor Reka',
       author_email='reka@mailcleaner.net',
       license='GPL',
