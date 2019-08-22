@@ -44,10 +44,14 @@ This package contains everything related to database interaction. You'll see for
 
 This package contains all classes used for dumping MailCleaner services configurations files.
 
+#### mailcleaner.config
+
+This package contains MailCleaner Configuration class in order to deal with /etc/mailcleaner.conf file for example and other
+Configuration stuff.
+
 ### Examples
 
 ---
-Take a look at the examples package.
 
 Here are some examples of mailcleaner package use:
 
@@ -57,7 +61,7 @@ Here are some examples of mailcleaner package use:
     from mailcleaner.db.models import User, WWLists, MTAConfig
     
     # -------------------------------------------------------------
-    # Example of MailCleaner Databases examples
+    # Example of mailcleaner.db package
     # -------------------------------------------------------------
     
     # find, update and finally delete a database object
@@ -88,7 +92,7 @@ Here are some examples of mailcleaner package use:
     get_db_connection_uri(database="mc_spool", master=True)
     
     # -------------------------------------------------------------
-    # Example of MailCleaner Configuration class
+    # Example of mailcleaner.config package
     # -------------------------------------------------------------
     
     # MailCleanerConfig is a Singleton
@@ -99,7 +103,7 @@ Here are some examples of mailcleaner package use:
     host_id = mailcleaner_config.get_value("HOSTID")
     
     # -------------------------------------------------------------
-    # Example of MailCleaner Dumpers
+    # Example of mailcleaner.dumpers package
     # -------------------------------------------------------------
     
     from mailcleaner.dumper import DumpEximConfig
