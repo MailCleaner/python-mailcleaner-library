@@ -178,4 +178,6 @@ the master of the cluster and every reads on the slave of the current host (wher
 on SQLAlchemy however here is a begin with which we can work: https://stackoverflow.com/questions/12093956/how-to-separate-master-slave-db-read-writes-in-flask-sqlalchemy
 * Because of fail2ban and not available python3.7 package under Debian Jessie, we used Python 3.4 but we should migrate the proejct to 3.7
 (no issue should be encoutered)
-*
+* Based on what has been done, complete the creation of all models.
+* Based on what has been done, complete the creation of all dumpers.
+* Develop tools for configuration under ``mailcleaner.configurator`` such as changing host_id, db password, etc.
