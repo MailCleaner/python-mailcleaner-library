@@ -18,3 +18,4 @@ from .dumper import *
 from .db import *
 from .db.models import *
 from .db.config import *
+from .config import *
