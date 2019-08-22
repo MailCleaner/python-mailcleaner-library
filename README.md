@@ -181,3 +181,4 @@ on SQLAlchemy however here is a begin with which we can work: https://stackoverf
 * Based on what has been done, complete the creation of all models.
 * Based on what has been done, complete the creation of all dumpers.
 * Develop tools for configuration under ``mailcleaner.configurator`` such as changing host_id, db password, etc.
+* **IMPORTANT:** Based on what has been done, complete the creation of both unit and integration tests. 
