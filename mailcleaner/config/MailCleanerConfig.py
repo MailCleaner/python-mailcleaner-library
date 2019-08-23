@@ -1,3 +1,4 @@
+import logging
 import os
 
 
@@ -22,6 +23,10 @@ class MailCleanerConfig:
     def __getattr__(self, name: str) -> str:
         return getattr(self.instance, name)
 
+    def __repr__(self):
+        items = ("%s=%r" % (k, v) for k, v in self.dict.items())
+        return "<%s: {%s}>" % (self.__class__.__name__,
+                               ', '.join(items)) + "\n"
     @staticmethod
     def get_instance() -> 'Config':
         """
@@ -55,6 +60,34 @@ class MailCleanerConfig:
         :return: value associated to the key ``search``
         """
         return MailCleanerConfig.dict.get(search, '')
+
+    def change_configuration(self, key: str, value: str) -> bool:
+        """
+        Replace a configuration value on /etc/mailcleaner.conf file if the key exists
+        :param key: the key to search
+        :param value: the value to replace
+        :return: True if key was found and changes done, False otherwise
+        """
+        # First check if key exists in current dict
+        if key not in self.dict:
+            return False
+
+        # Find and replace the key with the given value
+        import fileinput
+        changed = False
+        if os.path.isfile(self.mailcleaner_conf_path):
+            for line in fileinput.FileInput(self.mailcleaner_conf_path, inplace=1):
+                line = line.rstrip()
+                logging.debug("line: {}".format(line))
+                if key in line:
+                    line = str(key + " = " + value).rstrip("\n\r")
+                    changed = True
+                print(line,)
+        else:
+            raise FileNotFoundError
+
+        MailCleanerConfig.dict = MailCleanerConfig.__get_all_values__(self)
+        return changed
 
     def set_path(self, config_path: str) -> None:
         """

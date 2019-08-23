@@ -23,3 +23,12 @@ print(exim_stage1)
 
 system_conf = SystemConf.first()
 print(system_conf)
+
+from mailcleaner.config import MailCleanerConfig
+mc_config = MailCleanerConfig.get_instance()
+res_1 = mc_config.change_configuration("HOSTID", "42")
+print(res_1)
+print("REGISTERED: {}".format(mc_config))
+res_2 = mc_config.change_configuration("UNKOWNKEY", "10")
+print(res_2)
+print("REGISTERED: {}".format(mc_config))
