@@ -15,6 +15,7 @@ __version__ = '0.1'
 
 from .dumper import *
 from .db import *
+from .db.helpers import *
 from .db.models import *
 from .db.config import *
 from .config import *

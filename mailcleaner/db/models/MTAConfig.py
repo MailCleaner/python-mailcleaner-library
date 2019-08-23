@@ -2,17 +2,10 @@
 import enum
 
 from mailcleaner.db import base, session
+from mailcleaner.db.helpers import MCBooleanStringEnum
 from sqlalchemy import Column, String, BLOB, Boolean, Enum
 from sqlalchemy.dialects.mysql import INTEGER
 from . import BaseModel
-
-
-class MTAConfigBooleanEnum(enum.Enum):
-    """
-    MailCleaner MySQL Enum used for MTAConfig table
-    """
-    true = "true"
-    false = "false"
 
 
 class MTAConfig(base, BaseModel):
@@ -25,19 +18,19 @@ class MTAConfig(base, BaseModel):
     set_id = Column(INTEGER(10), primary_key=True)
     stage = Column(INTEGER(2), primary_key=True)
     header_txt = Column(BLOB, nullable=False)
-    accept_8bitmime = Column(Enum(MTAConfigBooleanEnum), nullable=False)
-    print_topbitchars = Column(Enum(MTAConfigBooleanEnum), nullable=False)
-    return_path_remove = Column(Enum(MTAConfigBooleanEnum), nullable=False)
+    accept_8bitmime = Column(Enum(MCBooleanStringEnum), nullable=False)
+    print_topbitchars = Column(Enum(MCBooleanStringEnum), nullable=False)
+    return_path_remove = Column(Enum(MCBooleanStringEnum), nullable=False)
     ignore_bounce_after = Column(String(10), nullable=False, default="2d")
     timeout_frozen_after = Column(String(10), nullable=False, default="7d")
-    smtp_relay = Column(Enum(MTAConfigBooleanEnum), nullable=False)
+    smtp_relay = Column(Enum(MCBooleanStringEnum), nullable=False)
     relay_from_hosts = Column(BLOB)
     allow_relay_for_unknown_domains = Column(Boolean,
                                              nullable=True,
                                              default=False)
     no_ratelimit_hosts = Column(BLOB)
-    smtp_enforce_sync = Column(Enum(MTAConfigBooleanEnum), nullable=False)
-    allow_mx_to_ip = Column(Enum(MTAConfigBooleanEnum), nullable=False)
+    smtp_enforce_sync = Column(Enum(MCBooleanStringEnum), nullable=False)
+    allow_mx_to_ip = Column(Enum(MCBooleanStringEnum), nullable=False)
     smtp_receive_timeout = Column(String(10), nullable=False, default="30s")
     smtp_accept_max_per_host = Column(INTEGER(10), nullable=False, default=10)
     smtp_accept_max_per_trusted_host = Column(INTEGER(10),
