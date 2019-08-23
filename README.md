@@ -177,7 +177,8 @@ tests/unit/test_user_model.py::test_create_user PASSED
 ============================================= 5 passed in 0.18 seconds =============================================
 ```
 
-### Style
+### Style <a name="Style"></a>
+---
 
 As described before this project use PEP8 recommendation and yapf to ensure that we follow these rules.
 
