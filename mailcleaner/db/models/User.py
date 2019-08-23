@@ -32,7 +32,8 @@ class User(base, BaseModel):
 
     @classmethod
     def find_by_username_and_domain(cls, username: str, domain: str):
-        return session.query(User).filter(domain == domain, username == username).first()
+        return session.query(User).filter(domain == domain,
+                                          username == username).first()
 
     @classmethod
     def find_by_pref(cls, user_pref: int):

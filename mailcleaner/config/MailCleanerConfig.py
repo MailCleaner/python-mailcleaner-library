@@ -1,7 +1,7 @@
 import os
 
-class MailCleanerConfig:
 
+class MailCleanerConfig:
     """
     Singleton MailCleaner Configuration file parser.
     """

@@ -14,4 +14,3 @@ class Commtouch(base, BaseModel):
     set_id = Column(Integer, primary_key=True, default=1)
     ctasdLicense = Column(String(250), nullable=True)
     ctipdLicense = Column(String(200), nullable=True)
-

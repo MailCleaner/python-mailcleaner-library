@@ -7,7 +7,6 @@ import sqlalchemy as db
 from mailcleaner.config import MailCleanerConfig
 
 from mailcleaner.db.config import DBConfig
-
 """
 Creation and initialization of database session.
 
@@ -27,10 +26,12 @@ def is_master():
     Determine if we're running code on a MailCleaner master or slave node.
     :return: True if it's a master, False otherwise
     """
-    return MailCleanerConfig.get_instance().get_value("ISMASTER").upper() == "Y"
+    return MailCleanerConfig.get_instance().get_value(
+        "ISMASTER").upper() == "Y"
 
 
-def get_db_connection_uri(database: str = DBConfig.DB_NAME.value, master: bool = is_master()) -> str:
+def get_db_connection_uri(database: str = DBConfig.DB_NAME.value,
+                          master: bool = is_master()) -> str:
     """
     Generate the database URLs for connecting SQLAlchemy.
     The MySQL URL connection should looks like dialect+driver://username:password@host:port/database

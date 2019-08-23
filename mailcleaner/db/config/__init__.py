@@ -10,5 +10,5 @@ class DBConfig(Enum):
     """
     DB_USER = "mailcleaner"
     DB_NAME = "mc_config"
-    DB_PASSWORD = MailCleanerConfig.get_instance().get_value('MYMAILCLEANERPWD')
-
+    DB_PASSWORD = MailCleanerConfig.get_instance().get_value(
+        'MYMAILCLEANERPWD')

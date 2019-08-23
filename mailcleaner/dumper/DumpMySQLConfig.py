@@ -19,7 +19,9 @@ class DumpMySQLConfig(MailCleanerBaseDump):
         :return: None
         """
         # Avoid having unsychronized database when starting a new VA
-        if os.path.exists(self._mc_config.get_value("VARDIR") + "/run/configurator/updater4mc-ran"):
+        if os.path.exists(
+                self._mc_config.get_value("VARDIR") +
+                "/run/configurator/updater4mc-ran"):
             self.binary_log_keep = 21
 
         self.dump_master_config()
@@ -31,13 +33,14 @@ class DumpMySQLConfig(MailCleanerBaseDump):
         :return: None
         """
         MASTERID = (int(self._mc_config.get_value("HOSTID")) * 2) - 1 + 10
-        self.dump_template(template_config_src_file='etc/mysql/my_master.cnf_template',
-                           config_datas={
-                               "VARDIR": self._mc_config.get_value("VARDIR"),
-                               "SRCDIR": self._mc_config.get_value("SRCDIR"),
-                               "MASTERID": MASTERID,
-                               "BINARY_LOG_KEEP": self.binary_log_keep
-                           })
+        self.dump_template(
+            template_config_src_file='etc/mysql/my_master.cnf_template',
+            config_datas={
+                "VARDIR": self._mc_config.get_value("VARDIR"),
+                "SRCDIR": self._mc_config.get_value("SRCDIR"),
+                "MASTERID": MASTERID,
+                "BINARY_LOG_KEEP": self.binary_log_keep
+            })
 
     def dump_slave_config(self) -> None:
         """
@@ -45,10 +48,11 @@ class DumpMySQLConfig(MailCleanerBaseDump):
         :return: None
         """
         SLAVEID = int(self._mc_config.get_value("HOSTID")) * 2 + 10
-        self.dump_template(template_config_src_file='etc/mysql/my_slave.cnf_template',
-                           config_datas={
-                               "VARDIR": self._mc_config.get_value("VARDIR"),
-                               "SRCDIR": self._mc_config.get_value("SRCDIR"),
-                               "SLAVEID": SLAVEID,
-                               "BINARY_LOG_KEEP": self.binary_log_keep
-                           })
+        self.dump_template(
+            template_config_src_file='etc/mysql/my_slave.cnf_template',
+            config_datas={
+                "VARDIR": self._mc_config.get_value("VARDIR"),
+                "SRCDIR": self._mc_config.get_value("SRCDIR"),
+                "SLAVEID": SLAVEID,
+                "BINARY_LOG_KEEP": self.binary_log_keep
+            })

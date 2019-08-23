@@ -32,18 +32,26 @@ class MTAConfig(base, BaseModel):
     timeout_frozen_after = Column(String(10), nullable=False, default="7d")
     smtp_relay = Column(Enum(MTAConfigBooleanEnum), nullable=False)
     relay_from_hosts = Column(BLOB)
-    allow_relay_for_unknown_domains = Column(Boolean, nullable=True, default=False)
+    allow_relay_for_unknown_domains = Column(Boolean,
+                                             nullable=True,
+                                             default=False)
     no_ratelimit_hosts = Column(BLOB)
     smtp_enforce_sync = Column(Enum(MTAConfigBooleanEnum), nullable=False)
     allow_mx_to_ip = Column(Enum(MTAConfigBooleanEnum), nullable=False)
     smtp_receive_timeout = Column(String(10), nullable=False, default="30s")
     smtp_accept_max_per_host = Column(INTEGER(10), nullable=False, default=10)
-    smtp_accept_max_per_trusted_host = Column(INTEGER(10), nullable=False, default=20)
+    smtp_accept_max_per_trusted_host = Column(INTEGER(10),
+                                              nullable=False,
+                                              default=20)
     smtp_accept_max = Column(INTEGER(10), nullable=False, default=50)
     smtp_reserve = Column(INTEGER(10), nullable=False, default=5)
     smtp_load_reserve = Column(INTEGER(10), nullable=False, default=30)
-    smtp_accept_queue_per_connection = Column(INTEGER(10), nullable=False, default=10)
-    smtp_accept_max_per_connection = Column(INTEGER(10), nullable=False, default=100)
+    smtp_accept_queue_per_connection = Column(INTEGER(10),
+                                              nullable=False,
+                                              default=10)
+    smtp_accept_max_per_connection = Column(INTEGER(10),
+                                            nullable=False,
+                                            default=100)
     smtp_conn_access = Column(String(10000), nullable=False, default="*")
     host_reject = Column(BLOB)
     sender_reject = Column(BLOB)
@@ -63,7 +71,10 @@ class MTAConfig(base, BaseModel):
     domains_require_tls_to = Column(BLOB)
     hosts_require_incoming_tls = Column(BLOB)
     use_syslog = Column(Boolean, nullable=True, default=False)
-    smtp_banner = Column(String(255), nullable=False, default="$smtp_active_hostname ESMTP Exim $version_number $tod_full")
+    smtp_banner = Column(
+        String(255),
+        nullable=False,
+        default="$smtp_active_hostname ESMTP Exim $version_number $tod_full")
     errors_reply_to = Column(String(255), default="")
     rbls = Column(String(255))
     rbls_timeout = Column(INTEGER(10), default=5)
@@ -73,10 +84,14 @@ class MTAConfig(base, BaseModel):
     callout_timeout = Column(INTEGER(10), default=10)
     retry_rule = Column(String(255), nullable=False, default="F,4d,2m")
     ratelimit_enable = Column(Boolean, nullable=True, default=False)
-    ratelimit_rule = Column(String(255), nullable=False, default="30 / 1m / strict")
+    ratelimit_rule = Column(String(255),
+                            nullable=False,
+                            default="30 / 1m / strict")
     ratelimit_delay = Column(INTEGER(10), default=10)
     trusted_ratelimit_enable = Column(Boolean, nullable=True, default=False)
-    trusted_ratelimit_rule = Column(String(255), nullable=False, default="60 / 1m / strict")
+    trusted_ratelimit_rule = Column(String(255),
+                                    nullable=False,
+                                    default="60 / 1m / strict")
     trusted_ratelimit_delay = Column(INTEGER(10), default=10)
     outgoing_virus_scan = Column(Boolean, nullable=True, default=False)
     mask_relayed_ip = Column(Boolean, nullable=True, default=False)
@@ -94,8 +109,5 @@ class MTAConfig(base, BaseModel):
 
     @classmethod
     def find_by_set_id_and_stage_id(cls, set_id: int, stage_id: int):
-        return session.query(MTAConfig).filter(set_id == set_id, stage_id == stage_id).first()
-
-
-
-
+        return session.query(MTAConfig).filter(set_id == set_id,
+                                               stage_id == stage_id).first()

@@ -10,10 +10,10 @@ def test_dump_ssh_jail():
 
     assert mc_jail is not None
 
-    ssh_jail_configuration_content = dump_fail2ban_config.generate_config(template_config_src_file=
-                                                                          'etc/fail2ban/jail.d/{}.local_template'.
-                                                                          format(ssh_jail_name),
-                                                                          config_datas=vars(mc_jail))
+    ssh_jail_configuration_content = dump_fail2ban_config.generate_config(
+        template_config_src_file='etc/fail2ban/jail.d/{}.local_template'.
+        format(ssh_jail_name),
+        config_datas=vars(mc_jail))
 
     assert ssh_jail_configuration_content is not None
     assert ssh_jail_configuration_content is not ""

@@ -6,11 +6,9 @@ from mailcleaner.dumper.MailCleanerBaseDump import MailCleanerBaseDump
 
 
 class DumpFail2banConfig(MailCleanerBaseDump):
-
     """
     Fail2ban Dumper - This dumper take care of dumping fail2ban jails.
     """
-
     def dump(self) -> None:
         """
         Dump Fail2Ban jails configuration files.
@@ -48,8 +46,9 @@ class DumpFail2banConfig(MailCleanerBaseDump):
         """
         logging.info("Start dumping of {} jail conf ..".format(jail))
 
-        mc_jail = Fail2banJail.find_by_name(name=jail.replace('-','_'))
+        mc_jail = Fail2banJail.find_by_name(name=jail.replace('-', '_'))
         if mc_jail is not None:
-            self.dump_template(template_config_src_file=
-                               'etc/fail2ban/jail.d/{}.local_template'.format(jail),
-                               config_datas=vars(mc_jail))
+            self.dump_template(
+                template_config_src_file='etc/fail2ban/jail.d/{}.local_template'
+                .format(jail),
+                config_datas=vars(mc_jail))

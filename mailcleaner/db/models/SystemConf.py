@@ -29,11 +29,21 @@ class SystemConf(base, BaseModel):
     cron_time = Column(TIME, nullable=False, default="00:00:00")
     cron_weekday = Column(INTEGER(2), nullable=False, default=1)
     cron_monthday = Column(INTEGER(2), nullable=False, default=1)
-    summary_subject = Column(String(250), nullable=False, default="Mailcleaner quarantine summary")
-    summary_from = Column(String(200), nullable=False, default="your_mail@yourdomain")
-    analyse_to = Column(String(200), nullable=False, default="your_mail@yourdomain")
-    falseneg_to = Column(String(200), nullable=False, default="your_mail@yourdomain")
-    falsepos_to = Column(String(200), nullable=False, default="your_mail@yourdomain")
+    summary_subject = Column(String(250),
+                             nullable=False,
+                             default="Mailcleaner quarantine summary")
+    summary_from = Column(String(200),
+                          nullable=False,
+                          default="your_mail@yourdomain")
+    analyse_to = Column(String(200),
+                        nullable=False,
+                        default="your_mail@yourdomain")
+    falseneg_to = Column(String(200),
+                         nullable=False,
+                         default="your_mail@yourdomain")
+    falsepos_to = Column(String(200),
+                         nullable=False,
+                         default="your_mail@yourdomain")
     src_dir = Column(String(255), nullable=False, default="/opt/mailcleaner")
     var_dir = Column(String(255), nullable=False, default="/var/mailcleaner")
     ad_server = Column(String(80), nullable=False, default="")
@@ -46,5 +56,3 @@ class SystemConf(base, BaseModel):
     archiver_host = Column(String(200), nullable=False, default="")
     api_fulladmin_ips = Column(BLOB)
     api_admin_ips = Column(BLOB)
-
-

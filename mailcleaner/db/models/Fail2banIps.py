@@ -6,7 +6,6 @@ from . import BaseModel
 
 
 class Fail2banIps(base, BaseModel):
-
     """
     Fail2banIps table
     """
@@ -38,13 +37,19 @@ class Fail2banIps(base, BaseModel):
 
     @classmethod
     def find_by_ip_and_jail(cls, ip: str, jail: str):
-        return session.query(Fail2banIps).filter(ip == ip, jail == jail).first()
+        return session.query(Fail2banIps).filter(ip == ip,
+                                                 jail == jail).first()
 
     @classmethod
-    def find_by_blacklisted_and_ip_and_jail(cls, blacklisted: bool, ip: str, jail: str):
-        return session.query(Fail2banIps).filter(blacklisted == blacklisted, ip == ip, jail == jail).first()
+    def find_by_blacklisted_and_ip_and_jail(cls, blacklisted: bool, ip: str,
+                                            jail: str):
+        return session.query(Fail2banIps).filter(blacklisted == blacklisted,
+                                                 ip == ip,
+                                                 jail == jail).first()
 
     @classmethod
-    def find_by_whitelisted_and_ip_and_jail(cls, whitelisted: bool, ip: str, jail: str):
-        return session.query(Fail2banIps).filter(whitelisted == whitelisted, ip == ip, jail == jail).first()
-
+    def find_by_whitelisted_and_ip_and_jail(cls, whitelisted: bool, ip: str,
+                                            jail: str):
+        return session.query(Fail2banIps).filter(whitelisted == whitelisted,
+                                                 ip == ip,
+                                                 jail == jail).first()

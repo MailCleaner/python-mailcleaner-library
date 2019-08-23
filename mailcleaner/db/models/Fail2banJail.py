@@ -6,7 +6,6 @@ from . import BaseModel
 
 
 class Fail2banJail(base, BaseModel):
-
     """
     Fail2banJail table
     """

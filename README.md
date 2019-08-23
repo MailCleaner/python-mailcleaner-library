@@ -8,7 +8,13 @@ For this, we use the recognized [SQLAlchemy](https://www.sqlalchemy.org/) ORM.
 
 ---
 
-This library requires Python 3.4 and above. If you're unsure how to check what version of Python you're on, you can check it using the following:
+This library requires Python 3.4 and above. 
+
+> **WARNING:** Please use [PEP8](https://www.python.org/dev/peps/pep-0008/) recommendation and [YAPF](https://github.com/google/yapf) 
+(check .style.yapf) with your favorite editor(you should have a plugin or something equivalent) in order to maintain a lisibility of the code and to strictly use only Python recommendation.
+Please check section [Styles](#Styles)
+
+If you're unsure how to check what version of Python you're on, you can check it using the following:
 
 > **Note:** You may need to use `python3` before your commands to ensure you use the correct Python path. e.g. `python3 --version`
 
@@ -21,7 +27,6 @@ python3 --version
 ```
 
 > **Note:** For installing Python 3: https://www.python.org/downloads/
-
 
 ### Installation
 
@@ -172,12 +177,34 @@ tests/unit/test_user_model.py::test_create_user PASSED
 ============================================= 5 passed in 0.18 seconds =============================================
 ```
 
+### Style
+
+As described before this project use PEP8 recommendation and yapf to ensure that we follow these rules.
+
+If your editor doesn't support yapf you can use it by hand (after installing it via pip3 and the requirements.txt).
+
+For checking the current project styles you can run it like this (make sure to be in mailcleaner package in order to don't change external libraries :-) ):
+
+```shell
+~ mailcleaner/mailcleaner: yapf --recursive --style='{based_on_style: pep8, indent_width: 4}' -d .
+```
+
+This will show you all diff of your code and the code with applying pep8 recommendations.
+
+Here is how to apply PEP8 changes in place:
+
+```shell
+~ mailcleaner/mailcleaner: yapf --recursive --style='{based_on_style: pep8, indent_width: 4}' -i .
+```
+
 ### TO DO
 ---
 
 * Add a flexible way to choose on which database instance to interact with. By default, every writes should be done on
 the master of the cluster and every reads on the slave of the current host (where the code is ran). There is no ready solution
-on SQLAlchemy however here is a begin with which we can work: https://stackoverflow.com/questions/12093956/how-to-separate-master-slave-db-read-writes-in-flask-sqlalchemy
+on SQLAlchemy however here is a begin with which we can work: https://stackoverflow.com/questions/12093956/how-to-separate-master-slave-db-read-writes-in-flask-sqlalchemy.
+Also, the best way is to use [MySQL-proxy](https://github.com/mysql/mysql-proxy) (or https://github.com/mysql/mysql-proxy or https://proxysql.com/) in order to don't implement this behaviour at application level.
+Maybe the best option is to use MySQL-Router which should simplify a ton of things on MailCleaner but for that we need ot use InnoDB. Here is an example demonstrating the simpleness of this https://mysqlhighavailability.com/configuring-mysql-router/
 * Because of fail2ban and not available python3.7 package under Debian Jessie, we used Python 3.4 but we should migrate the proejct to 3.7
 (no issue should be encoutered)
 * Based on what has been done, complete the creation of all models.
@@ -186,3 +213,5 @@ on SQLAlchemy however here is a begin with which we can work: https://stackoverf
 * **IMPORTANT:** Based on what has been done, complete the creation of both unit and integration tests. For this point, we should also
 extract Models factory created for tests. Take a look at the bottom of User model class and UserFactory class. We should extract this to a 
 different package dedicated to tests.
+* As explained on example, there are no relationship on Models because there are no realtionships in database structure. I didn't wanted to created a logical bias.
+First we need to add the relationship at databases and then implement (quickly and simply) the logical relationships on the code.

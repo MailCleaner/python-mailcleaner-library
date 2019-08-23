@@ -16,7 +16,8 @@ class MailCleanerBaseDump:
 
     def __init__(self):
         self._mc_config = MailCleanerConfig.get_instance()
-        logging.basicConfig(filename='{}/{}/'.format(self._mc_config.get_value('VARDIR'), 'log/mailcleaner/dumper.log'),
+        logging.basicConfig(filename='{}/{}/'.format(
+            self._mc_config.get_value('VARDIR'), 'log/mailcleaner/dumper.log'),
                             level=logging.DEBUG)
 
     def __write_config(self, config_file_path: str, content: str):
@@ -27,7 +28,8 @@ class MailCleanerBaseDump:
         :return: True if the configuration dumps is successfull, False otherwise
         """
         try:
-            with open(file=config_file_path, mode="w", encoding="utf-8") as file:
+            with open(file=config_file_path, mode="w",
+                      encoding="utf-8") as file:
                 file.writelines(content)
             return True
         except Exception as e:
@@ -38,7 +40,8 @@ class MailCleanerBaseDump:
             exit(code=255)
             return False
 
-    def generate_config(self, template_config_src_file: str, config_datas: dict) -> str:
+    def generate_config(self, template_config_src_file: str,
+                        config_datas: dict) -> str:
         """
         Generate a new configuration based on the template file and the configurations datas.
 
@@ -55,16 +58,21 @@ class MailCleanerBaseDump:
         :return: the configuration content if everything goes well or an empty str
         """
         logging.info("Start dumping conf ...")
-        logging.info("template_config_src_file: {}".format(template_config_src_file))
+        logging.info(
+            "template_config_src_file: {}".format(template_config_src_file))
         logging.debug("config_datas: {}".format(config_datas))
 
-        template_config_file_path = self._mc_config.get_value('SRCDIR') + os.path.sep + template_config_src_file
-        logging.debug("template_config_file_path: {}".format(template_config_file_path))
+        template_config_file_path = self._mc_config.get_value(
+            'SRCDIR') + os.path.sep + template_config_src_file
+        logging.debug(
+            "template_config_file_path: {}".format(template_config_file_path))
 
         # Ensure that template config file exists
         if not os.path.exists(template_config_file_path):
-            logging.error("Template file {} doesn't exists".format(template_config_file_path))
-            print("Template file {} doesn't exists".format(template_config_file_path))
+            logging.error("Template file {} doesn't exists".format(
+                template_config_file_path))
+            print("Template file {} doesn't exists".format(
+                template_config_file_path))
             exit(code=255)
 
         # Extract dir path for Jinja2 Environment
@@ -72,8 +80,9 @@ class MailCleanerBaseDump:
         logging.debug("DIR_PATH: {}".format(DIR_PATH))
 
         # Extract only the filename for rendering
-        _ , template_config_filename = os.path.split(template_config_file_path)
-        logging.debug("template_config_filename: {}".format(template_config_filename))
+        _, template_config_filename = os.path.split(template_config_file_path)
+        logging.debug(
+            "template_config_filename: {}".format(template_config_filename))
 
         try:
             # Generate config from the template thanks to Jinja2
@@ -92,7 +101,8 @@ class MailCleanerBaseDump:
 
         return ""
 
-    def dump_template(self, template_config_src_file: str, config_datas: dict) -> None:
+    def dump_template(self, template_config_src_file: str,
+                      config_datas: dict) -> None:
         """
         Generate a new configuration based on the template file and the configurations datas. Also, dump (write) in place
         the new configuration file.
@@ -102,19 +112,26 @@ class MailCleanerBaseDump:
         :return: None
         """
         # Generate configuration data raw
-        configuration_content = self.generate_config(template_config_src_file, config_datas)
+        configuration_content = self.generate_config(template_config_src_file,
+                                                     config_datas)
 
         # Write the configuration into the final configuration file
-        template_config_file_path = self._mc_config.get_value('SRCDIR') + os.path.sep + template_config_src_file
-        _, template_config_filename = os.path.split(template_config_file_path) # Extract only the filename for rendering
-        logging.debug("template_config_filename: {}".format(template_config_filename))
+        template_config_file_path = self._mc_config.get_value(
+            'SRCDIR') + os.path.sep + template_config_src_file
+        _, template_config_filename = os.path.split(
+            template_config_file_path
+        )  # Extract only the filename for rendering
+        logging.debug(
+            "template_config_filename: {}".format(template_config_filename))
         if "_template" in template_config_file_path:
-            destination_config_file_path = template_config_file_path.replace("_template", "")
-            if self.__write_config(destination_config_file_path, configuration_content):
-                logging.info("New configuration successfuly writted to {}".format(destination_config_file_path))
+            destination_config_file_path = template_config_file_path.replace(
+                "_template", "")
+            if self.__write_config(destination_config_file_path,
+                                   configuration_content):
+                logging.info(
+                    "New configuration successfuly writted to {}".format(
+                        destination_config_file_path))
             else:
-                logging.info("An error occured during the creation of the configuration {}".
-                             format(destination_config_file_path))
-
-
-
+                logging.info(
+                    "An error occured during the creation of the configuration {}"
+                    .format(destination_config_file_path))

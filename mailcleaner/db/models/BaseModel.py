@@ -8,7 +8,8 @@ class AutoRepr(object):
     """
     def __repr__(self):
         items = ("%s = %r" % (k, v) for k, v in self.__dict__.items())
-        return "<%s: {%s}>" % (self.__class__.__name__, ', '.join(items)) + "\n"
+        return "<%s: {%s}>" % (self.__class__.__name__,
+                               ', '.join(items)) + "\n"
 
 
 class BaseModel(AutoRepr):
@@ -16,7 +17,6 @@ class BaseModel(AutoRepr):
     Base Model for creating a MailCleaner Model related to a table of MailCleaner db.
     Every model should inherit from this class. Also, common functions of Models should be placed here.
     """
-
     @classmethod
     def first(cls):
         """

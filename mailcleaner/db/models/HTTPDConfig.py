@@ -23,9 +23,9 @@ class HTTPDConfig(base, BaseModel):
     start_servers = Column(INTEGER(5), nullable=False, default=100)
     http_port = Column(INTEGER(3), nullable=False, default=80)
     https_port = Column(INTEGER(3), nullable=False, default=443)
-    certificate_file = Column(String(50), nullable=False, default="default.pem")
+    certificate_file = Column(String(50),
+                              nullable=False,
+                              default="default.pem")
     tls_certificate_data = Column(BLOB)
     tls_certificate_key = Column(BLOB)
     tls_certificate_chain = Column(BLOB)
-
-

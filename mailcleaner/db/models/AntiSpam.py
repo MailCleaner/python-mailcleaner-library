@@ -21,7 +21,11 @@ class AntiSpam(base, BaseModel):
     ok_locales = Column(String(50), nullable=False, default="fr en de it es")
     use_rbls = Column(Boolean, nullable=False, default=True)
     rbls_timeout = Column(INTEGER(11), nullable=False, default=20)
-    sa_rbls = Column(String(250), nullable=False, default="SORBS RFCIGNORANT DSBL AHBL SPAMCOP BSP IADB HABEAS DNSWL URIBL")
+    sa_rbls = Column(
+        String(250),
+        nullable=False,
+        default=
+        "SORBS RFCIGNORANT DSBL AHBL SPAMCOP BSP IADB HABEAS DNSWL URIBL")
     use_dcc = Column(Boolean, nullable=False, default=True)
     dcc_timeout = Column(INTEGER(11), nullable=False, default=10)
     use_razor = Column(Boolean, nullable=False, default=True)
@@ -43,14 +47,11 @@ class AntiSpam(base, BaseModel):
     spf_timeout = Column(INTEGER(11), nullable=False, default=5)
     use_dkim = Column(Boolean, nullable=False, default=True)
     dkim_timeout = Column(INTEGER(11), nullable=False, default=5)
-    dmarc_follow_quarantine_policy = Column(Boolean, nullable=False, default=True)
+    dmarc_follow_quarantine_policy = Column(Boolean,
+                                            nullable=False,
+                                            default=True)
     spam_list_to_be_spam = Column(INTEGER(11), nullable=False, default=2)
     use_syslog = Column(Boolean, nullable=False, default=False)
     do_stockme = Column(Boolean, nullable=False, default=False)
     stockme_nbdays = Column(INTEGER(11), nullable=False, default=3)
     dnsliststoreport = Column(String(50), nullable=False, default="")
-
-
-
-
-

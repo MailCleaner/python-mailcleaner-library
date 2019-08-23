@@ -37,11 +37,12 @@ class WWLists(base, BaseModel):
 
     @classmethod
     def find_by_sender_and_recipient(cls, sender: str, recipient: str):
-        return session.query(WWLists).filter(sender == sender, recipient == recipient).first()
+        return session.query(WWLists).filter(sender == sender,
+                                             recipient == recipient).first()
 
     @classmethod
-    def find_by_sender_and_recipient_and_type(cls, sender: str, recipient: str, type: str):
-        return session.query(WWLists).filter(sender == sender, recipient == recipient, type == type).first()
-
-
-
+    def find_by_sender_and_recipient_and_type(cls, sender: str, recipient: str,
+                                              type: str):
+        return session.query(WWLists).filter(sender == sender,
+                                             recipient == recipient,
+                                             type == type).first()

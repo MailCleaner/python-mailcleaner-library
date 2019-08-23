@@ -13,7 +13,6 @@
 __docformat__ = 'restructuredtext en'
 __version__ = '0.1'
 
-
 from .dumper import *
 from .db import *
 from .db.models import *

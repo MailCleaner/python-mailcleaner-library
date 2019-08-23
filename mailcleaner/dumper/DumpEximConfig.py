@@ -38,17 +38,22 @@ class DumpEximConfig(MailCleanerBaseDump):
         :return: the qualified domain of this MailCleaner host
         """
         qualify_domain = ""
-        logging.debug("default_domain = ".format(self.system_conf.default_domain))
+        logging.debug("default_domain = ".format(
+            self.system_conf.default_domain))
         if "^" not in self.system_conf.default_domain or "*" not in self.system_conf.default_domain:
             qualify_domain = self.system_conf.default_domain
         else:
-            qualify_domain_result = run("/bin/hostname --fqdn", hide=True, warn=True)
+            qualify_domain_result = run("/bin/hostname --fqdn",
+                                        hide=True,
+                                        warn=True)
             if qualify_domain_result.ok:
                 qualify_domain = qualify_domain_result.stdout
                 if qualify_domain == "":
                     qualify_domain = self._mc_config.get_value("DEFAULTDOMAIN")
             else:
-                logging.error("An error occured in getting helo name: {}".format(qualify_domain_result.stderr))
+                logging.error(
+                    "An error occured in getting helo name: {}".format(
+                        qualify_domain_result.stderr))
                 exit(255)
         logging.debug("Qualify domain: {}".format(qualify_domain))
         return qualify_domain
@@ -66,14 +71,21 @@ class DumpEximConfig(MailCleanerBaseDump):
         else:
             helo_name = self.get_qualify_domain()
             if "." not in helo_name:
-                result = run("/sbin/ifconfig | /bin/grep 'inet addr' | /bin/grep -v '127.0.0.1'", hide=True, warn=True)
+                result = run(
+                    "/sbin/ifconfig | /bin/grep 'inet addr' | /bin/grep -v '127.0.0.1'",
+                    hide=True,
+                    warn=True)
                 if result.ok:
-                    inet_adr_search = re.search('inet addr:([0-9.]+)', result.stdout, re.IGNORECASE)
+                    inet_adr_search = re.search('inet addr:([0-9.]+)',
+                                                result.stdout, re.IGNORECASE)
                     if inet_adr_search:
                         helo_name = inet_adr_search.group(1)
-                    logging.debug("Found helo name: {}".format(inet_adr_search))
+                    logging.debug(
+                        "Found helo name: {}".format(inet_adr_search))
                 else:
-                    logging.error("An error occured in getting helo name: {}".format(result.stderr))
+                    logging.error(
+                        "An error occured in getting helo name: {}".format(
+                            result.stderr))
                     exit(255)
         logging.debug("Helo name: {}".format(helo_name))
 
@@ -89,20 +101,21 @@ class DumpEximConfig(MailCleanerBaseDump):
         """
         Dump exim_stage2 configuration file.
         """
-        self.dump_template(template_config_src_file='etc/exim/exim_stage2.conf_template',
-                           config_datas={
-                               "VARDIR": self._mc_config.get_value("VARDIR"),
-                               "SRCDIR": self._mc_config.get_value("SRCDIR"),
-                               "helo_name": self.get_helo_name(),
-                               "qualify_recipient": self.system_conf.sysadmin,
-                               "usetls": self.exim_stage_2.use_incoming_tls,
-                               "ignore_bounce_error_after": self.exim_stage_2.ignore_bounce_after,
-                               "timeout_frozen_after": self.exim_stage_2.timeout_frozen_after,
-                               "global_maxmsgsize": self.exim_stage_2.global_msg_max_size,
-                               "max_received": self.exim_stage_2.received_headers_max,
-                               "received_header_text": self.exim_stage_2.header_txt,
-
-                           })
+        self.dump_template(
+            template_config_src_file='etc/exim/exim_stage2.conf_template',
+            config_datas={
+                "VARDIR": self._mc_config.get_value("VARDIR"),
+                "SRCDIR": self._mc_config.get_value("SRCDIR"),
+                "helo_name": self.get_helo_name(),
+                "qualify_recipient": self.system_conf.sysadmin,
+                "usetls": self.exim_stage_2.use_incoming_tls,
+                "ignore_bounce_error_after":
+                self.exim_stage_2.ignore_bounce_after,
+                "timeout_frozen_after": self.exim_stage_2.timeout_frozen_after,
+                "global_maxmsgsize": self.exim_stage_2.global_msg_max_size,
+                "max_received": self.exim_stage_2.received_headers_max,
+                "received_header_text": self.exim_stage_2.header_txt,
+            })
 
     def dump_exim_stage_4(self) -> None:
         """
