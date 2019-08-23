@@ -12,7 +12,7 @@ This library requires Python 3.4 and above.
 
 > **WARNING:** Please use [PEP8](https://www.python.org/dev/peps/pep-0008/) recommendation and [YAPF](https://github.com/google/yapf) 
 (check .style.yapf) with your favorite editor(you should have a plugin or something equivalent) in order to maintain a lisibility of the code and to strictly use only Python recommendation.
-Please check section [Styles](#Styles)
+Please check section [Styles](#Style-guide)
 
 If you're unsure how to check what version of Python you're on, you can check it using the following:
 
@@ -177,7 +177,7 @@ tests/unit/test_user_model.py::test_create_user PASSED
 ============================================= 5 passed in 0.18 seconds =============================================
 ```
 
-### Style <a name="Style"></a>
+### Style guide <a name="Style-guide"></a>
 ---
 
 As described before this project use PEP8 recommendation and yapf to ensure that we follow these rules.
