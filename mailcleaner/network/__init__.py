@@ -68,8 +68,10 @@ def get_helo_name() -> str:
                     "An error occured in getting helo name: {}".format(
                         result.stderr))
                 exit(255)
+
         mailcleaner_config = MailCleanerConfig.get_instance()
         mailcleaner_config.change_configuration("HELONAME", helo_name)
+        logging.debug("mailcleaner.network - HELONAME: {}".format(mailcleaner_config.get_value("HELONAME")))
 
     logging.debug("Helo name: {}".format(helo_name))
 
