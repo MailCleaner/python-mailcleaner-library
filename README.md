@@ -63,6 +63,8 @@ This package contains all classes used for dumping MailCleaner services configur
 We use Jinja2 which is the template rendering engine in Python ecosystem (used by ansible, etc.)
 More info here: [Jinja2](https://jinja.palletsprojects.com/en/2.10.x/)
 
+Use case: [Dump scripts](https://github.com/MailCleaner/python-mailcleaner-dump-scripts)
+
 #### mailcleaner.config
 
 This package contains MailCleaner Configuration class in order to deal with /etc/mailcleaner.conf file for example and other
@@ -226,3 +228,6 @@ extract Models factory created for tests. Take a look at the bottom of User mode
 different package dedicated to tests.
 * As explained on example, there are no relationship on Models because there are no realtionships in database structure. I didn't wanted to created a logical bias.
 First we need to add the relationship at databases and then implement (quickly and simply) the logical relationships on the code.
+* When the code is sufficiently covered in test, it may be interesting to do the CI (Continuous Integration). Thus, no code will be integreted on the MailCleaner sources without passing test first.
+Github permits this (we can also consider other platforms such as Gitlab, etc.). Here we consider only CI because doing CD (Continuous Deployment) on MailCleaner isn't useful as in fact we already done something like that
+thanks to the Updater4MC who update MailCleaner's code every day.
