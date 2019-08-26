@@ -102,5 +102,5 @@ class MTAConfig(base, BaseModel):
 
     @classmethod
     def find_by_set_id_and_stage_id(cls, set_id: int, stage_id: int):
-        return session.query(MTAConfig).filter(set_id == set_id,
-                                               stage_id == stage_id).first()
+        return session.query(MTAConfig).filter(MTAConfig.set_id == set_id,
+                                               MTAConfig.stage == stage_id).first()

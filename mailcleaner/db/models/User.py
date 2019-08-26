@@ -32,15 +32,15 @@ class User(base, BaseModel):
 
     @classmethod
     def find_by_username_and_domain(cls, username: str, domain: str):
-        return session.query(User).filter(domain == domain,
-                                          username == username).first()
+        return session.query(User).filter(User.domain == domain,
+                                          User.username == username).first()
 
     @classmethod
     def find_by_pref(cls, user_pref: int):
         return session.query(User).filter_by(pref=user_pref).first()
 
 
-class UserFactory(factory.Factory):
+class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
     id = factory.Sequence(lambda n: n)
     username = factory.Sequence(lambda n: 'john%s' % n)
     domain = factory.Sequence(lambda n: 'domain%s' % n)
@@ -48,3 +48,4 @@ class UserFactory(factory.Factory):
 
     class Meta:
         model = User
+        sqlalchemy_session = session

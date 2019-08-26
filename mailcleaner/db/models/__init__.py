@@ -11,3 +11,4 @@ from .AntiSpam import AntiSpam
 from .SystemConf import SystemConf
 from .HTTPDConfig import HTTPDConfig
 from .Master import Master
+from .Administrator import Administrator

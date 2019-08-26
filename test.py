@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 from mailcleaner import User, Commtouch, WWLists, MTAConfig, SystemConf
+from mailcleaner.db.models import Administrator
 
 commtouch = Commtouch()
 c = commtouch.all()
 print(c)
 newton = User.find_by_username_and_domain("newton", "toto.local")
-print("Hello")
-print(newton)
-newton.username = "newton3"
-newton.save()
-print(newton)
+
+if newton:
+    print("Hello")
+    print(newton)
+    newton.username = "newton3"
+    newton.save()
+    print(newton)
 
 wwlists = WWLists()
 lists = wwlists.all()
@@ -32,3 +35,7 @@ print("REGISTERED: {}".format(mc_config))
 res_2 = mc_config.change_configuration("UNKOWNKEY", "10")
 print(res_2)
 print("REGISTERED: {}".format(mc_config))
+
+administrator = Administrator()
+administrators = administrator.all()
+print("Admins: {}".format(administrators))
