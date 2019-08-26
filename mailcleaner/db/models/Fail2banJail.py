@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from mailcleaner.db import base, session
 from sqlalchemy import Column, Integer, String, Boolean
-
 from . import BaseModel
 
 
@@ -21,6 +20,7 @@ class Fail2banJail(base, BaseModel):
     filter = Column(String(50), nullable=False)
     banaction = Column(String(50), nullable=False)
     logpath = Column(String(250), nullable=False)
+    max_count = Column(Integer, nullable=False)
 
     @classmethod
     def find_by_id(cls, id: int):
@@ -29,3 +29,7 @@ class Fail2banJail(base, BaseModel):
     @classmethod
     def find_by_name(cls, name: str):
         return session.query(Fail2banJail).filter_by(name=name).first()
+
+    @classmethod
+    def get_jails(cls):
+        return session.query(Fail2banJail.name).distinct(Fail2banJail.name).all()
