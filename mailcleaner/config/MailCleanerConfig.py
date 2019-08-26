@@ -27,6 +27,7 @@ class MailCleanerConfig:
         items = ("%s=%r" % (k, v) for k, v in self.dict.items())
         return "<%s: {%s}>" % (self.__class__.__name__,
                                ', '.join(items)) + "\n"
+
     @staticmethod
     def get_instance() -> 'Config':
         """
@@ -76,13 +77,14 @@ class MailCleanerConfig:
         import fileinput
         changed = False
         if os.path.isfile(self.mailcleaner_conf_path):
-            for line in fileinput.FileInput(self.mailcleaner_conf_path, inplace=1):
+            for line in fileinput.FileInput(self.mailcleaner_conf_path,
+                                            inplace=1):
                 line = line.rstrip()
                 logging.debug("line: {}".format(line))
                 if key in line:
                     line = str(key + " = " + value).rstrip("\n\r")
                     changed = True
-                print(line,)
+                print(line, )
         else:
             raise FileNotFoundError
 
