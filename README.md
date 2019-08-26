@@ -60,11 +60,23 @@ This package contains everything related to database interaction. You'll see for
 #### mailcleaner.dumpers
 
 This package contains all classes used for dumping MailCleaner services configurations files.
+We use Jinja2 which is the template rendering engine in Python ecosystem (used by ansible, etc.)
+More info here: [Jinja2](https://jinja.palletsprojects.com/en/2.10.x/)
 
 #### mailcleaner.config
 
 This package contains MailCleaner Configuration class in order to deal with /etc/mailcleaner.conf file for example and other
 Configuration stuff.
+
+#### mailcleaner.configurator
+
+This package contains every code related to the wizard of MailCleaner. All functions should be implemented in this package.
+Thus, we can reuse it for others needs.
+
+#### mailcleaner.network
+
+Contains MailCleaner network related functions. Everything related to network (such as getting interfaces, etc.) should be done here.
+
 
 ### Examples
 

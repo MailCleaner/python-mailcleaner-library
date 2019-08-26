@@ -5,7 +5,7 @@ from mailcleaner.config import MailCleanerConfig
 
 def test_get_is_master():
     mailcleaner_configuration = MailCleanerConfig()
-    assert mailcleaner_configuration.get_value('ISMASTER') in ['Y', 'N']
+    assert mailcleaner_configuration.get_value('ISMASTER').upper() in ['Y', 'N']
 
 
 def test_get_and_check_dirs():
