@@ -231,3 +231,4 @@ First we need to add the relationship at databases and then implement (quickly a
 * When the code is sufficiently covered in test, it may be interesting to do the CI (Continuous Integration). Thus, no code will be integreted on the MailCleaner sources without passing test first.
 Github permits this (we can also consider other platforms such as Gitlab, etc.). Here we consider only CI because doing CD (Continuous Deployment) on MailCleaner isn't useful as in fact we already done something like that
 thanks to the Updater4MC who update MailCleaner's code every day.
+* Intelligent configuration via environment and Configuration files for the library such as the logging verbosity, logging file etc. (To check with Vincent Lauria who already did something similar on another project).
