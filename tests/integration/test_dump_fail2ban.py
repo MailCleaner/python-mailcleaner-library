@@ -1,4 +1,4 @@
-from mailcleaner_db.models import Fail2banJail
+from mailcleaner.db.models import Fail2banJail
 from mailcleaner.dumper import DumpFail2banConfig
 
 
