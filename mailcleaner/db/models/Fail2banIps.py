@@ -37,27 +37,27 @@ class Fail2banIps(base, BaseModel):
 
     @classmethod
     def find_by_ip_and_jail(cls, ip: str, jail: str):
-        return session.query(Fail2banIps).filter(Fail2banIps.ip == ip,
-                                                 Fail2banIps.jail == jail).first()
+        return session.query(Fail2banIps).filter(
+            Fail2banIps.ip == ip, Fail2banIps.jail == jail).first()
 
     @classmethod
     def find_by_blacklisted_and_ip_and_jail(cls, blacklisted: bool, ip: str,
                                             jail: str):
-        return session.query(Fail2banIps).filter(Fail2banIps.blacklisted == blacklisted,
-                                                 Fail2banIps.ip == ip,
-                                                 Fail2banIps.jail == jail).first()
+        return session.query(Fail2banIps).filter(
+            Fail2banIps.blacklisted == blacklisted, Fail2banIps.ip == ip,
+            Fail2banIps.jail == jail).first()
 
     @classmethod
     def find_by_whitelisted_and_ip_and_jail(cls, whitelisted: bool, ip: str,
                                             jail: str):
-        return session.query(Fail2banIps).filter(Fail2banIps.whitelisted == whitelisted,
-                                                 Fail2banIps.ip == ip,
-                                                 Fail2banIps.jail == jail).first()
+        return session.query(Fail2banIps).filter(
+            Fail2banIps.whitelisted == whitelisted, Fail2banIps.ip == ip,
+            Fail2banIps.jail == jail).first()
 
 
 class Fail2banIpsFactory(factory.Factory):
     id = factory.Sequence(lambda n: n)
-    ip = factory.Sequence(lambda n:  n)
+    ip = factory.Sequence(lambda n: n)
     count = factory.Sequence(lambda n: 1)
     active = factory.Sequence(lambda n: n)
     blacklisted = factory.Sequence(lambda n: n)

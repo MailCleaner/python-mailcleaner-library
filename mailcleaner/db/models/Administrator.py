@@ -44,11 +44,13 @@ class Administrator(base, BaseModel):
 
     @classmethod
     def find_by_username(cls, username: str):
-        return session.query(Administrator).filter_by(username=username).first()
+        return session.query(Administrator).filter_by(
+            username=username).first()
 
     @classmethod
     def find_by_domain(cls, domain: str):
-        return session.query(Administrator).filter(Administrator.domains.in_(domain)).all()
+        return session.query(Administrator).filter(
+            Administrator.domains.in_(domain)).all()
 
     def set_password(self, password: str) -> None:
         """
@@ -72,4 +74,3 @@ class AdministratorFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         model = Administrator
         sqlalchemy_session = session
-
