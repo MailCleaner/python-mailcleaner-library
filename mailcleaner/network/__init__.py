@@ -1,5 +1,6 @@
 import logging
 import re
+import netifaces
 
 from invoke import run
 
@@ -18,8 +19,7 @@ def get_qualify_domain() -> str:
     :return: the qualified domain of this MailCleaner host
     """
     qualify_domain = ""
-    logging.debug("default_domain = ".format(
-        system_conf.default_domain))
+    logging.debug("default_domain = ".format(system_conf.default_domain))
     if "^" not in system_conf.default_domain or "*" not in system_conf.default_domain:
         qualify_domain = system_conf.default_domain
     else:
@@ -31,9 +31,8 @@ def get_qualify_domain() -> str:
             if qualify_domain == "":
                 qualify_domain = _mc_config.get_value("DEFAULTDOMAIN")
         else:
-            logging.error(
-                "An error occured in getting helo name: {}".format(
-                    qualify_domain_result.stderr))
+            logging.error("An error occured in getting helo name: {}".format(
+                qualify_domain_result.stderr))
             exit(255)
     logging.debug("Qualify domain: {}".format(qualify_domain))
     return qualify_domain
@@ -52,27 +51,20 @@ def get_helo_name() -> str:
     else:
         helo_name = get_qualify_domain()
         if "." not in helo_name:
-            result = run(
-                "/sbin/ifconfig | /bin/grep 'inet addr' | /bin/grep -v '127.0.0.1'",
-                hide=True,
-                warn=True)
-            if result.ok:
-                inet_adr_search = re.search('inet addr:([0-9.]+)',
-                                            result.stdout, re.IGNORECASE)
-                if inet_adr_search:
-                    helo_name = inet_adr_search.group(1)
-                logging.debug(
-                    "Found helo name: {}".format(inet_adr_search))
-            else:
+            try:
+                helo_name = netifaces.ifaddresses('eth0')[
+                    netifaces.AF_INET][0]['addr']
+                logging.debug("Found helo name: {}".format(helo_name))
+
+            except Exception as e:
                 logging.error(
-                    "An error occured in getting helo name: {}".format(
-                        result.stderr))
+                    "An error occured in getting helo name: {}".format(e))
                 exit(255)
 
         mailcleaner_config = MailCleanerConfig.get_instance()
         mailcleaner_config.change_configuration("HELONAME", helo_name)
-        logging.debug("mailcleaner.network - HELONAME: {}".format(mailcleaner_config.get_value("HELONAME")))
+        logging.debug("mailcleaner.network - HELONAME: {}".format(
+            mailcleaner_config.get_value("HELONAME")))
 
     logging.debug("Helo name: {}".format(helo_name))
-
     return helo_name
