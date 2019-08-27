@@ -1,6 +1,7 @@
 import logging
 import re
 import netifaces
+import socket
 
 from invoke import run
 
@@ -23,13 +24,9 @@ def get_qualify_domain() -> str:
     if "^" not in system_conf.default_domain or "*" not in system_conf.default_domain:
         qualify_domain = system_conf.default_domain
     else:
-        qualify_domain_result = run("/bin/hostname --fqdn",
-                                    hide=True,
-                                    warn=True)
-        if qualify_domain_result.ok:
-            qualify_domain = qualify_domain_result.stdout
-            if qualify_domain == "":
-                qualify_domain = _mc_config.get_value("DEFAULTDOMAIN")
+        qualify_domain = socket.gethostname()
+        if qualify_domain == "":
+            qualify_domain = _mc_config.get_value("DEFAULTDOMAIN")
         else:
             logging.error("An error occured in getting helo name: {}".format(
                 qualify_domain_result.stderr))
