@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from mailcleaner import User, Commtouch, WWLists, MTAConfig, SystemConf
-from mailcleaner.db.models import Administrator
+from mailcleaner.db.models import Administrator, PreRBLs, UriRBLs
 
 commtouch = Commtouch()
 c = commtouch.all()
@@ -39,3 +39,9 @@ print("REGISTERED: {}".format(mc_config))
 administrator = Administrator()
 administrators = administrator.all()
 print("Admins: {}".format(administrators))
+
+pre_rbls = PreRBLs().all()
+print(pre_rbls)
+
+uri_rbls = UriRBLs().all()
+print(uri_rbls)
