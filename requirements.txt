@@ -1,6 +1,5 @@
 Jinja2==2.10.1
 SQLAlchemy==1.3.7
-mailcleaner-config==0.3
 PyMySQL==0.9.3
 pytest==4.4.0
 pytest-cov==2.7.1
