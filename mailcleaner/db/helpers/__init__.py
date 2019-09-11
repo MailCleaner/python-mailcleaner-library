@@ -36,7 +36,7 @@ class MCNoAddReplaceEnum(enum.Enum):
 
 class MCYesNoDisarmEnum(enum.Enum):
     """
-    MailCleaner MySQL Enum created for type enum("yes","no","disarm") used in  table.
+    MailCleaner MySQL Enum created for type enum("yes","no","disarm") used in DangerousContent table.
     """
     yes = "yes"
     no = "no"
