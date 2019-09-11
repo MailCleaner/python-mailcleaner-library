@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
-from mailcleaner.db import base, session
-from sqlalchemy import Column, String, BLOB, Boolean, Enum
-from sqlalchemy.dialects.mysql import INTEGER
+from mailcleaner.db import base
+from sqlalchemy import Column, String, BLOB, Boolean
 from . import BaseModel
 
 
