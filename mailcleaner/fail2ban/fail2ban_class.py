@@ -3,8 +3,8 @@ import subprocess, sys, os
 import logging
 try:
     from mailcleaner.config import MailCleanerConfig
-    from fail2ban_db import Fail2banDB
-    from fail2ban_db import Fail2banAction
+    from .fail2ban_db import Fail2banDB
+    from .fail2ban_db import Fail2banAction
 except Exception as err:
     log_file = "/var/mailcleaner/log/mc_fail2ban_script.log"
     logging.basicConfig(
