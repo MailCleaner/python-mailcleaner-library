@@ -16,3 +16,4 @@ class DNSList(base, BaseModel):
     type = Column(String(20), nullable=Flase, default="blacklist")
     active = Column(Boolean, nullable=Flase, default=True)
     comment = Column(BLOB, nullable=True)
+
