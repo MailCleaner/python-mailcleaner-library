@@ -39,7 +39,8 @@ class McLogger(object):
             os.mkdir(full_path)
 
         # Logger configuration.
-        self.console_formatter = logging.Formatter(self.format)
+        self.console_formatter = logging.Formatter(self.format,
+                              "%Y-%m-%d %H:%M:%S")
         self.console_logger = logging.FileHandler("{}{}.log".format(full_path,filename))
         self.console_logger.setFormatter(self.console_formatter)
 
