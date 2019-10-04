@@ -37,7 +37,7 @@ class Fail2banException(Exception):
         super(Fail2banException, self).__init__(msg)
 
 
-class McFail2ban:
+class Fail2banService:
 
     jail_name = ''
     ip = ''
@@ -75,12 +75,20 @@ class McFail2ban:
         if jail_name == None:
             jail_name = self.jail_name
         if f2b_call:
+            logging.info("Banning=>{} inside jail=>{}".format(ip, jail_name))
             self.__safe_run("fail2ban-client set {} banip {}".format(
                 jail_name, ip))
         else:
             logging.info("Banning=>{} inside jail=>{}".format(ip, jail_name))
             if db_insert:
-                self.fail2banDB.insert_row(ip, jail_name)
+                test = self.fail2banDB.insert_row(ip, jail_name)
+                logging.warning(" testttt {}".format(test))
+                if test == 2:
+                    logging.warning("Blacklisting")
+                    logging.warning("fail2ban-client set {}-bl banip {}".format(
+                                    jail_name, ip))
+                    self.__safe_run("fail2ban-client set {}-bl banip {}".format(
+                                    jail_name, ip))
 
     def unban(self, ip=None, jail_name=None, db_insert=True, f2b_call=False):
         if ip == None:
@@ -120,7 +128,7 @@ class McFail2ban:
         actions = [(Fail2banAction.TO_ADD, self.ban),
                    (Fail2banAction.TO_UPDATE, self.ban),
                    (Fail2banAction.TO_REMOVE, self.unban)]
-        jails = self.fail2banDB.get_jailname()
+        jails = self.fail2banDB.get_jails()
         if len(jails) != 0:
             fail2ban_dump_path = self.fail2banDB.get_dump_file_path(
             ) + "dump_fail2ban_"

@@ -35,7 +35,7 @@ class Fail2banDB:
     def get_dump_file_path(self):
         return self.dump_file_path
 
-    def insert_row(self, ip, jail_name):
+    def insert_row(self, ip, jail_name) -> int:
         """ Check if the row exists in master's Db if not insert it else
             update it
         
@@ -53,14 +53,17 @@ class Fail2banDB:
             if not mc_ban_ip.active:
                 return_code = self.update_row(ip, jail_name)
         else:
-            Fail2banIpsFactory.create(
-                ip=ip,
-                jail=jail_name,
-                host=MailCleanerConfig().get_value('MCHOSTNAME')).save()
-
+            test = Fail2banIps(ip=ip,
+                               jail=jail_name,
+                               host=MailCleanerConfig().get_value('MCHOSTNAME'),
+                               count=1)
+            test.save()
+            print(test)
         return return_code
 
-    def update_row(self, ip, jail_name):
+
+
+    def update_row(self, ip, jail_name) -> int:
         """
         Update the row in Dbs for couple ip and jail
         and blacklist if > than max_count defined in Fail2banJail
@@ -137,6 +140,12 @@ class Fail2banDB:
             ips.append(raw_ip.ip)
         return ips
 
+    def check_blacklisted(self, ip, jail_name):
+        if Fail2banIps().find_by_blacklisted_and_jail(jail_name) is not None:
+            return True
+        else:
+            return False
+        
     def __log_and_dump(self, ip, jail_name, action):
         """Log the error and dump info in files
         
