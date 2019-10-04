@@ -56,7 +56,10 @@ class McLogger(object):
         self.logger.error(msg, extra=extra)
 
     def warn(self, msg, extra=None):
-        self.logger.warn(msg, extra=extra)
+        self.logger.warning(msg, extra=extra)
+
+    def warning(self, msg, extra=None):
+        self.logger.warning(msg, extra=extra)
 
     def info(self, msg, extra=None):
         self.logger.info(msg, extra=extra)
