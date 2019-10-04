@@ -102,7 +102,7 @@ class MailCleanerBaseDump:
         return ""
 
     def dump_template(self, template_config_src_file: str,
-                      config_datas: dict) -> None:
+                      config_datas: dict, destination_config_src_file:str = "") -> None:
         """
         Generate a new configuration based on the template file and the configurations datas. Also, dump (write) in place
         the new configuration file.
@@ -117,7 +117,12 @@ class MailCleanerBaseDump:
 
         # Write the configuration into the final configuration file
         template_config_file_path = self._mc_config.get_value(
-            'SRCDIR') + os.path.sep + template_config_src_file
+            'SRCDIR') + os.path.sep
+        if destination_config_src_file != "":
+            template_config_file_path += destination_config_src_file
+        else:
+            template_config_file_path += template_config_src_file
+
         _, template_config_filename = os.path.split(
             template_config_file_path
         )  # Extract only the filename for rendering
@@ -126,12 +131,14 @@ class MailCleanerBaseDump:
         if "_template" in template_config_file_path:
             destination_config_file_path = template_config_file_path.replace(
                 "_template", "")
-            if self.__write_config(destination_config_file_path,
-                                   configuration_content):
-                logging.info(
-                    "New configuration successfuly writted to {}".format(
-                        destination_config_file_path))
-            else:
-                logging.info(
-                    "An error occured during the creation of the configuration {}"
-                    .format(destination_config_file_path))
+        else:
+            destination_config_file_path = template_config_file_path
+        if self.__write_config(destination_config_file_path,
+                                configuration_content):
+            logging.info(
+                "New configuration successfuly writted to {}".format(
+                    destination_config_file_path))
+        else:
+            logging.info(
+                "An error occured during the creation of the configuration {}"
+                .format(destination_config_file_path))
