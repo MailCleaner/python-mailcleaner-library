@@ -132,10 +132,7 @@ class Fail2banDB:
         return ips
 
     def check_blacklisted(self, ip, jail_name):
-        if Fail2banIps().find_by_blacklisted_and_jail(jail_name) is not None:
-            return True
-        else:
-            return False
+        return Fail2banIps().find_by_blacklisted_and_jail(jail_name) is not None
         
     def __log_and_dump(self, ip, jail_name, action):
         """Log the error and dump info in files
