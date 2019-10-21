@@ -1,21 +1,12 @@
 import subprocess, sys, os
-import logging
 from enum import Enum
 from mailcleaner.db.models.Fail2banJail import Fail2banJail
 from mailcleaner.db.models.Fail2banIps import Fail2banIps
 from mailcleaner.db.models.Fail2banIps import Fail2banIpsFactory
 from sqlalchemy.sql import func
 from mailcleaner.config import MailCleanerConfig
-
-log_file = MailCleanerConfig().get_value(
-    'VARDIR') + "/log/mc_fail2ban_script.log"
-logging.basicConfig(
-    filename=log_file,
-    filemode='a+',
-    format='%(asctime)s - [Fail2banDB] - %(levelname)s - %(message)s',
-    datefmt='%d-%b-%y %H:%M:%S')
-logging.getLogger().setLevel(logging.INFO)
-
+from mailcleaner.logger import McLogger
+from mailcleaner.network import *
 
 class Fail2banAction(Enum):
     TO_ADD = "to_add"
@@ -25,12 +16,13 @@ class Fail2banAction(Enum):
 
 class Fail2banDB:
     dump_file_path = ''
-
+    __mcLogger = None
     def __init__(self):
         """ 
         Consctructor of the class create the connection to the databases and set dump_file_path
         """
         self.dump_file_path = MailCleanerConfig().get_value('VARDIR') + "/tmp/"
+        self.__mcLogger = McLogger(name="Fail2banDB",project="fail2ban", filename="mc-fail2ban")
 
     def get_dump_file_path(self):
         return self.dump_file_path
@@ -55,10 +47,9 @@ class Fail2banDB:
         else:
             test = Fail2banIps(ip=ip,
                                jail=jail_name,
-                               host=MailCleanerConfig().get_value('MCHOSTNAME'),
+                               host=get_reverse_name(),
                                count=1)
             test.save()
-            print(test)
         return return_code
 
 
@@ -83,7 +74,7 @@ class Fail2banDB:
             return_code = 1
             mc_ban_ip.active = True
             mc_ban_ip.count += 1
-            mc_ban_ip.host = MailCleanerConfig().get_value('MCHOSTNAME')
+            mc_ban_ip.host = get_reverse_name()
             mc_ban_ip.last_hit = func.now()
             if (Fail2banJail().find_by_name(jail_name).max_count != -1
                     and mc_ban_ip.count >
@@ -154,10 +145,10 @@ class Fail2banDB:
             jail_name {str} -- Jail name 
             action {str} -- Action to do in mysql
         """
-        logging.warning(ip + "=>" + jail_name +
+        self.__mcLogger.warn(ip + "=>" + jail_name +
                         " Cannot add/update mysql dumping into file")
         tf = 'dump_fail2ban_' + jail_name + '_' + action
         f = open(self.dump_file_path + tf, 'a+')
         f.write(ip + "\n")
         f.close()
-        logging.info("ip wrote into " + tf)
+        self.__mcLogger.info("ip wrote into " + tf)

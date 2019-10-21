@@ -7,9 +7,11 @@ from invoke import run
 
 from mailcleaner.config import MailCleanerConfig
 from mailcleaner.db.models import SystemConf
+from mailcleaner.logger import McLogger
 
 _mc_config = MailCleanerConfig.get_instance()
 system_conf = SystemConf.first()
+_mcLogger = McLogger(name="Network")
 
 
 def get_qualify_domain() -> str:
@@ -20,7 +22,7 @@ def get_qualify_domain() -> str:
     :return: the qualified domain of this MailCleaner host
     """
     qualify_domain = ""
-    logging.debug("default_domain = ".format(system_conf.default_domain))
+    _mcLogger.debug("default_domain = ".format(system_conf.default_domain))
     if "^" not in system_conf.default_domain or "*" not in system_conf.default_domain:
         qualify_domain = system_conf.default_domain
     else:
@@ -28,10 +30,10 @@ def get_qualify_domain() -> str:
         if qualify_domain == "":
             qualify_domain = _mc_config.get_value("DEFAULTDOMAIN")
         else:
-            logging.error("An error occured in getting helo name: {}".format(
+            _mcLogger.error("An error occured in getting helo name: {}".format(
                 qualify_domain_result.stderr))
             exit(255)
-    logging.debug("Qualify domain: {}".format(qualify_domain))
+    _mcLogger.debug("Qualify domain: {}".format(qualify_domain))
     return qualify_domain
 
 
@@ -51,17 +53,31 @@ def get_helo_name() -> str:
             try:
                 helo_name = netifaces.ifaddresses('eth0')[
                     netifaces.AF_INET][0]['addr']
-                logging.debug("Found helo name: {}".format(helo_name))
+                _mcLogger.debug("Found helo name: {}".format(helo_name))
 
             except Exception as e:
-                logging.error(
+                _mcLogger.error(
                     "An error occured in getting helo name: {}".format(e))
                 exit(255)
 
         mailcleaner_config = MailCleanerConfig.get_instance()
         mailcleaner_config.change_configuration("HELONAME", helo_name)
-        logging.debug("mailcleaner.network - HELONAME: {}".format(
+        _mcLogger.debug("mailcleaner.network - HELONAME: {}".format(
             mailcleaner_config.get_value("HELONAME")))
 
-    logging.debug("Helo name: {}".format(helo_name))
+    _mcLogger.debug("Helo name: {}".format(helo_name))
     return helo_name
+
+def get_reverse_name() -> str:
+    """
+    Determine the revered dns name of the ip
+    :return: the revered dns result of this MailCleaner host
+    """
+    reversed_ip = ''
+    try:
+        reversed_ip = socket.gethostbyaddr(netifaces.ifaddresses('eth0')[
+                    netifaces.AF_INET][0]['addr'])[0]
+        _mcLogger.debug("Reversed name: {}".format(reversed_ip))
+    except Exception as e:
+        _mcLogger.error("An error occured in resolving reversed ip: {}".format(e))
+    return reversed_ip

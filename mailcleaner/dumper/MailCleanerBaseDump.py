@@ -95,8 +95,6 @@ class MailCleanerBaseDump:
         except Exception as e:
             logging.error("An exception occured during the dump of the config {} with the following error: \n{}")\
                 .format(template_config_src_file, str(e))
-            print("An exception occured during the dump of the config {} with the following error: \n{}")\
-                .format(template_config_src_file, str(e))
             exit(code=255)
 
         return ""

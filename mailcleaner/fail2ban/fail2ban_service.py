@@ -5,6 +5,7 @@ try:
     from mailcleaner.config import MailCleanerConfig
     from .fail2ban_db import Fail2banDB
     from .fail2ban_db import Fail2banAction
+    from mailcleaner.logger import McLogger
 except Exception as err:
     log_file = "/var/mailcleaner/log/mc_fail2ban_script.log"
     logging.basicConfig(
@@ -13,21 +14,12 @@ except Exception as err:
         format='%(asctime)s - [McFail2ban] - %(levelname)s - %(message)s',
         datefmt='%d-%b-%y %H:%M:%S',
         level=10)
-    logging.warn("Cannot import package mailcleaner => {}".format(err.orig))
+    logging.warn("Cannot import package mailcleaner => {}".format(err))
     quit()
 from invoke import run
 
-log_file = MailCleanerConfig().get_value(
-    'VARDIR') + "/log/mc_fail2ban_script.log"
 dump_file_path = "/var/tmp/"
-logging.basicConfig(
-    filename=log_file,
-    filemode='a+',
-    format='%(asctime)s - [McFail2ban] - %(levelname)s - %(message)s',
-    datefmt='%d-%b-%y %H:%M:%S',
-    level=10)
 
-logging.getLogger().setLevel(logging.INFO)
 
 
 class Fail2banException(Exception):
@@ -45,12 +37,13 @@ class Fail2banService:
     ip_type = 'IPV4'
     fail2banDB = None
     fail2banIptable = None
-
+    __mcLogger = None
     def __init__(self, jail_name: str = '', ip: str = '', port: str = ''):
         self.jail_name = jail_name
         self.ip = ip
         self.port = port
         self.fail2banDB = Fail2banDB()
+        self.__mcLogger = McLogger(name="Fail2banService", project="fail2ban", filename="mc-fail2ban")
 
     def set_ip(self, ip: str):
         self.ip = ip
@@ -75,18 +68,16 @@ class Fail2banService:
         if jail_name == None:
             jail_name = self.jail_name
         if f2b_call:
-            logging.info("Banning=>{} inside jail=>{}".format(ip, jail_name))
+            self.__mcLogger.info("Banning=>{} inside jail=>{}".format(ip, jail_name))
             self.__safe_run("fail2ban-client set {} banip {}".format(
                 jail_name, ip))
         else:
-            logging.info("Banning=>{} inside jail=>{}".format(ip, jail_name))
+            self.__mcLogger.info("Banning=>{} inside jail=>{}".format(ip, jail_name))
+
             if db_insert:
                 test = self.fail2banDB.insert_row(ip, jail_name)
-                logging.warning(" testttt {}".format(test))
                 if test == 2:
-                    logging.warning("Blacklisting")
-                    logging.warning("fail2ban-client set {}-bl banip {}".format(
-                                    jail_name, ip))
+                    self.__mcLogger.warn("Blacklisting {} from {}".format(ip, jail_name))
                     self.__safe_run("fail2ban-client set {}-bl banip {}".format(
                                     jail_name, ip))
 
@@ -95,7 +86,7 @@ class Fail2banService:
             ip = self.ip
         if jail_name == None:
             jail_name = self.jail_name
-        logging.info("Unban=>" + ip + " inside jail=>" + jail_name)
+        self.__mcLogger.info("Unban=>" + ip + " inside jail=>" + jail_name)
         if f2b_call:
             self.__safe_run("fail2ban-client set {} unbanip {}".format(
                 jail_name, ip))
@@ -142,19 +133,19 @@ class Fail2banService:
                         })
 
     def create_chains(self):
-        logging.info("port: " + self.port)
+        self.__mcLogger.debug("port: " + self.port)
         self.fail2banIptable.create_chains("fail2ban-" + self.jail_name,
                                            self.port)
 
     def reload_fw(self):
-        logging.info("Reload Firewall called")
+        self.__mcLogger.debug("Reload Firewall called")
         self.treat_dumps()
         self.__ban_from_mysql()
         self.__whitelist_from_mysql()
         self.__blacklist_from_mysql()
 
     def treat_cron(self):
-        logging.info("Treat cron called")
+        self.__mcLogger.debug("Treat cron called")
         self.__ban_from_mysql()
         self.__whitelist_from_mysql()
         self.__blacklist_from_mysql()

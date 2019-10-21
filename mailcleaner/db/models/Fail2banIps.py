@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from mailcleaner.db import base, session
-from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP
+from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, UniqueConstraint
 from sqlalchemy.sql import func
 import factory
 from . import BaseModel
@@ -21,6 +21,7 @@ class Fail2banIps(base, BaseModel):
     jail = Column(String(20), nullable=False)
     last_hit = Column(TIMESTAMP, server_default=func.now())
     host = Column(String(150), nullable=False)
+    UniqueConstraint('ip', 'jail', name='UC_IP_JAIL')
 
     @classmethod
     def find_by_id(cls, id: int):
