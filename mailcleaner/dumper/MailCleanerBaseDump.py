@@ -16,9 +16,11 @@ class MailCleanerBaseDump:
 
     def __init__(self):
         self._mc_config = MailCleanerConfig.get_instance()
-        logging.basicConfig(filename='{}/{}/'.format(
-            self._mc_config.get_value('VARDIR'), 'log/mailcleaner/dumper.log'),
-                            level=logging.DEBUG)
+        logging.basicConfig(
+            filename='{}/{}/'.format(
+                self._mc_config.get_value('VARDIR'),
+                'log/mailcleaner/dumper.log'),
+            level=logging.DEBUG)
 
     def __write_config(self, config_file_path: str, content: str):
         """
@@ -28,8 +30,8 @@ class MailCleanerBaseDump:
         :return: True if the configuration dumps is successfull, False otherwise
         """
         try:
-            with open(file=config_file_path, mode="w",
-                      encoding="utf-8") as file:
+            with open(
+                    file=config_file_path, mode="w", encoding="utf-8") as file:
                 file.writelines(content)
             return True
         except Exception as e:
@@ -99,8 +101,10 @@ class MailCleanerBaseDump:
 
         return ""
 
-    def dump_template(self, template_config_src_file: str,
-                      config_datas: dict, destination_config_src_file:str = "") -> None:
+    def dump_template(self,
+                      template_config_src_file: str,
+                      config_datas: dict,
+                      destination_config_src_file: str = "") -> None:
         """
         Generate a new configuration based on the template file and the configurations datas. Also, dump (write) in place
         the new configuration file.
@@ -132,10 +136,9 @@ class MailCleanerBaseDump:
         else:
             destination_config_file_path = template_config_file_path
         if self.__write_config(destination_config_file_path,
-                                configuration_content):
-            logging.info(
-                "New configuration successfuly writted to {}".format(
-                    destination_config_file_path))
+                               configuration_content):
+            logging.info("New configuration successfuly writted to {}".format(
+                destination_config_file_path))
         else:
             logging.info(
                 "An error occured during the creation of the configuration {}"

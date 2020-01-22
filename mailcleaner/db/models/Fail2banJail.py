@@ -3,6 +3,8 @@ from mailcleaner.db import base, session
 from sqlalchemy import Column, Integer, String, Boolean
 from . import BaseModel
 
+routing_session = ""
+
 
 class Fail2banJail(base, BaseModel):
     """
@@ -32,4 +34,5 @@ class Fail2banJail(base, BaseModel):
 
     @classmethod
     def get_jails(cls):
-        return session.query(Fail2banJail.name).distinct(Fail2banJail.name).all()
+        return session.query(Fail2banJail.name).distinct(
+            Fail2banJail.name).all()

@@ -8,6 +8,7 @@ from mailcleaner.config import MailCleanerConfig
 from mailcleaner.logger import McLogger
 from mailcleaner.network import *
 
+
 class Fail2banAction(Enum):
     TO_ADD = "to_add"
     TO_REMOVE = "to_remove"
@@ -17,18 +18,20 @@ class Fail2banAction(Enum):
 class Fail2banDB:
     dump_file_path = ''
     __mcLogger = None
+
     def __init__(self):
         """ 
-        Consctructor of the class create the connection to the databases and set dump_file_path
+        Constructor of the class create the connection to the databases and set dump_file_path
         """
         self.dump_file_path = MailCleanerConfig().get_value('VARDIR') + "/tmp/"
-        self.__mcLogger = McLogger(name="Fail2banDB",project="fail2ban", filename="mc-fail2ban")
+        self.__mcLogger = McLogger(
+            name="Fail2banDB", project="fail2ban", filename="mc-fail2ban")
 
     def get_dump_file_path(self):
         return self.dump_file_path
 
     def insert_row(self, ip, jail_name) -> int:
-        """ Check if the row exists in master's Db if not insert it else
+        """ Check if the row exists in master's DB if not insert it else
             update it
         
         Arguments:
@@ -45,14 +48,10 @@ class Fail2banDB:
             if not mc_ban_ip.active:
                 return_code = self.update_row(ip, jail_name)
         else:
-            test = Fail2banIps(ip=ip,
-                               jail=jail_name,
-                               host=get_reverse_name(),
-                               count=1)
+            test = Fail2banIps(
+                ip=ip, jail=jail_name, host=get_reverse_name(), count=1)
             test.save()
         return return_code
-
-
 
     def update_row(self, ip, jail_name) -> int:
         """
@@ -87,7 +86,7 @@ class Fail2banDB:
     def unban_row(self, ip, jail_name):
         """ 
         Set the active column to false in MySql for the couple ip, jail_name
-        
+        Resets the count and blacklisted value
         Arguments:
             ip {str} -- ip address
             jail_name {str} -- Jail name
@@ -95,6 +94,8 @@ class Fail2banDB:
         mc_ban_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
         if mc_ban_ip is not None:
             mc_ban_ip.active = False
+            mc_ban_ip.count = 0
+            mc_ban_ip.blacklisted = False
             mc_ban_ip.save()
 
     def set_ip_jail_whitelisted(self, ip, jail_name):
@@ -102,6 +103,11 @@ class Fail2banDB:
         mc_ban_ip.whitelisted = True
         mc_ban_ip.active = False
         mc_ban_ip.save()
+
+    def set_jail_inactive(self, jail_name):
+        mc_jail = Fail2banJail().find_by_name(jail_name)
+        mc_jail.enabled = False
+        mc_jail.save()
 
     def get_jails(self):
         jails = []
@@ -132,8 +138,12 @@ class Fail2banDB:
         return ips
 
     def check_blacklisted(self, ip, jail_name):
-        return Fail2banIps().find_by_blacklisted_and_jail(jail_name) is not None
-        
+        return Fail2banIps().find_by_blacklisted_and_jail(
+            jail_name) is not None
+
+    def delete_all_rows_jail(self, jail_name):
+        return Fail2banIps().reset_jail_ips(jail_name)
+
     def __log_and_dump(self, ip, jail_name, action):
         """Log the error and dump info in files
         
@@ -143,7 +153,7 @@ class Fail2banDB:
             action {str} -- Action to do in mysql
         """
         self.__mcLogger.warn(ip + "=>" + jail_name +
-                        " Cannot add/update mysql dumping into file")
+                             " Cannot add/update mysql dumping into file")
         tf = 'dump_fail2ban_' + jail_name + '_' + action
         f = open(self.dump_file_path + tf, 'a+')
         f.write(ip + "\n")

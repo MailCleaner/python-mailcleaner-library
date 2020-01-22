@@ -4,6 +4,9 @@ from enum import Enum
 from sqlalchemy import orm, MetaData
 from sqlalchemy.ext.declarative import declarative_base
 import sqlalchemy as db
+
+from sqlalchemy.ext.declarative import declarative_base
+
 from mailcleaner.config import MailCleanerConfig
 
 from mailcleaner.db.config import DBConfig
@@ -56,10 +59,49 @@ def get_db_connection_uri(database: str = DBConfig.DB_NAME.value,
     return mysql_uri_connection
 
 
+engines = {
+    'm_master':
+    db.create_engine(
+        'mysql+pymysql://' + DBConfig.DB_USER.value + ":" +
+        DBConfig.DB_MASTER_PWD + "@" + DBConfig.DB_MASTER_IP + ":" +
+        str(DBPort.MASTER.value) + "/mc_config",
+        logging_name='m_master',
+        echo=True),
+    's_slave':
+    db.create_engine(
+        'mysql+pymysql://' + DBConfig.DB_USER.value + ":" +
+        DBConfig.DB_PASSWORD.value + "@:" + str(DBPort.SLAVE.value) +
+        "/mc_config",
+        logging_name='s_slave',
+        echo=True),
+}
+
+
+class RoutingSession(orm.Session):
+    def get_bind(self, mapper=None, clause=None):
+        print(self.deleted)
+        if self._flushing:
+            return engines['m_master']
+        else:
+            return engines['s_slave']
+
+    _name = None
+
+    def using_bind(self, name):
+        print(name)
+        s = RoutingSession()
+        vars(s).update(vars(self))
+        s._name = name
+        return s
+
+
 # Set database
 base = declarative_base()
-engine = db.create_engine(get_db_connection_uri())
-base.metadata.bind = engine
-session = orm.scoped_session(orm.sessionmaker())(bind=engine)
-
+#engine = db.create_engine(get_db_connection_uri())
+#base.metadata.bind = engine
+#if "USE_SQL_PROXY" in environ:
+#    print()
+#else:
+#    session = orm.scoped_session(orm.sessionmaker())(bind=engine)
+session = orm.scoped_session(orm.sessionmaker(class_=RoutingSession))
 metadata = MetaData()
