@@ -79,14 +79,17 @@ class MailCleanerConfig:
         if os.path.isfile(self.mailcleaner_conf_path):
             for line in fileinput.FileInput(self.mailcleaner_conf_path,
                                             inplace=1):
-                line = line.rstrip()
-                logging.debug("line: {}".format(line))
-                if key in line:
-                    line = str(key + " = " + value).rstrip("\n\r")
+                fkey, fvalue = line.split(" = ")
+                if key == fkey:
+                    print(line.replace(fvalue, value))
                     changed = True
-                print(line, )
+                else:
+                    print(line, end='')
         else:
             raise FileNotFoundError
+
+        MailCleanerConfig.dict = MailCleanerConfig.__get_all_values__(self)
+        return changed
 
         MailCleanerConfig.dict = MailCleanerConfig.__get_all_values__(self)
         return changed
