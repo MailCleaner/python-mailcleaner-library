@@ -63,23 +63,20 @@ engines = {
     'm_master':
     db.create_engine(
         'mysql+pymysql://' + DBConfig.DB_USER.value + ":" +
-        DBConfig.DB_MASTER_PWD + "@" + DBConfig.DB_MASTER_IP + ":" +
+        DBConfig.DB_MASTER_PWD.value + "@" + DBConfig.DB_MASTER_IP.value + ":" +
         str(DBPort.MASTER.value) + "/mc_config",
-        logging_name='m_master',
-        echo=True),
+        logging_name='m_master'),
     's_slave':
     db.create_engine(
         'mysql+pymysql://' + DBConfig.DB_USER.value + ":" +
         DBConfig.DB_PASSWORD.value + "@:" + str(DBPort.SLAVE.value) +
         "/mc_config",
-        logging_name='s_slave',
-        echo=True),
+        logging_name='s_slave'),
 }
 
 
 class RoutingSession(orm.Session):
     def get_bind(self, mapper=None, clause=None):
-        print(self.deleted)
         if self._flushing:
             return engines['m_master']
         else:
@@ -88,7 +85,6 @@ class RoutingSession(orm.Session):
     _name = None
 
     def using_bind(self, name):
-        print(name)
         s = RoutingSession()
         vars(s).update(vars(self))
         s._name = name
@@ -100,7 +96,6 @@ base = declarative_base()
 #engine = db.create_engine(get_db_connection_uri())
 #base.metadata.bind = engine
 #if "USE_SQL_PROXY" in environ:
-#    print()
 #else:
 #    session = orm.scoped_session(orm.sessionmaker())(bind=engine)
 session = orm.scoped_session(orm.sessionmaker(class_=RoutingSession))

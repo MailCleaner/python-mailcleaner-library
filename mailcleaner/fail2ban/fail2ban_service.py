@@ -35,7 +35,6 @@ class Fail2banService:
     port = ''
     ip_type = 'IPV4'
     fail2banDB = None
-    fail2banIptable = None
     __mcLogger = None
 
     def __init__(self, jail_name: str = '', ip: str = '', port: str = ''):
@@ -150,11 +149,6 @@ class Fail2banService:
                         self.__apply_func(
                             func, **{'jail': jail,
                                      'file_path': file_path})
-
-    def create_chains(self):
-        self.__mcLogger.debug("port: " + self.port)
-        self.fail2banIptable.create_chains("fail2ban-" + self.jail_name,
-                                           self.port)
 
     def reload_fw(self):
         self.__mcLogger.debug("Reload Firewall called")

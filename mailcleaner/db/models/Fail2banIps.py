@@ -91,8 +91,6 @@ class Fail2banIps(base, BaseModel):
     def reset_jail_ips(cls, jail_name: str):
         ips = session.query(Fail2banIps).filter(
             Fail2banIps.jail == jail_name, Fail2banIps.whitelisted == 0).all()
-        print(ips)
-        print("test s")
         for ip in ips:
             ip.active = False
             ip.count = 0
