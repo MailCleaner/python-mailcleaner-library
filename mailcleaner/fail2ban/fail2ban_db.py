@@ -99,10 +99,20 @@ class Fail2banDB:
             mc_ban_ip.save()
 
     def set_ip_jail_whitelisted(self, ip, jail_name):
-        mc_ban_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
-        mc_ban_ip.whitelisted = True
-        mc_ban_ip.active = False
-        mc_ban_ip.save()
+        wl_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
+        if wl_ip is not None:
+            wl_ip.whitelisted = True
+            wl_ip.active = False
+            wl_ip.save()
+        else:
+            wl_ip = Fail2banIps(
+                ip=ip,
+                active=False,
+                jail=jail_name,
+                host=get_reverse_name(),
+                count=0,
+                whitelisted=True)
+            wl_ip.save()
 
     def set_jail_inactive(self, jail_name):
         mc_jail = Fail2banJail().find_by_name(jail_name)

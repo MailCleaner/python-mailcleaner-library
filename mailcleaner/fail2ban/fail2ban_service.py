@@ -150,6 +150,11 @@ class Fail2banService:
                             func, **{'jail': jail,
                                      'file_path': file_path})
 
+    def whitelist(self, ip, jail_name):
+        self.fail2banDB.set_ip_jail_whitelisted(ip, jail_name)
+        self.__safe_run(
+            "fail2ban-client set {} addignoreip {}".format(jail_name, ip))
+
     def reload_fw(self):
         self.__mcLogger.debug("Reload Firewall called")
         self.treat_dumps()
