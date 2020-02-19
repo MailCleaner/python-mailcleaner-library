@@ -77,7 +77,10 @@ class Fail2banIps(base, BaseModel):
     @classmethod
     def get_all_active_by_jail(cls, jail: str, active: bool = True):
         return session.query(Fail2banIps).filter(
-            Fail2banIps.active == active, Fail2banIps.jail == jail).all()
+            Fail2banIps.active == active,
+            Fail2banIps.jail == jail,
+            Fail2banIps.whitelisted=False,
+            Fail2banIps.blacklisted=False).all()
 
     @classmethod
     def set_all_active(cls, active: bool = False):

@@ -166,6 +166,7 @@ class Fail2banService:
     def treat_cron(self):
         self.__mcLogger.debug("Treat cron called")
         self.__ban_from_mysql()
+        self.__unban_from_mysql()
         self.__whitelist_from_mysql()
         self.__blacklist_from_mysql()
 
