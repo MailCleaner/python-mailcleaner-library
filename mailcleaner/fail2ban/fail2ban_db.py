@@ -24,8 +24,9 @@ class Fail2banDB:
         Constructor of the class create the connection to the databases and set dump_file_path
         """
         self.dump_file_path = MailCleanerConfig().get_value('VARDIR') + "/tmp/"
-        self.__mcLogger = McLogger(
-            name="Fail2banDB", project="fail2ban", filename="mc-fail2ban")
+        self.__mcLogger = McLogger(name="Fail2banDB",
+                                   project="fail2ban",
+                                   filename="mc-fail2ban")
 
     def get_dump_file_path(self):
         return self.dump_file_path
@@ -48,8 +49,10 @@ class Fail2banDB:
             if not mc_ban_ip.active:
                 return_code = self.update_row(ip, jail_name)
         else:
-            test = Fail2banIps(
-                ip=ip, jail=jail_name, host=get_reverse_name(), count=1)
+            test = Fail2banIps(ip=ip,
+                               jail=jail_name,
+                               host=get_reverse_name(),
+                               count=1)
             test.save()
         return return_code
 
@@ -105,13 +108,12 @@ class Fail2banDB:
             wl_ip.active = False
             wl_ip.save()
         else:
-            wl_ip = Fail2banIps(
-                ip=ip,
-                active=False,
-                jail=jail_name,
-                host=get_reverse_name(),
-                count=0,
-                whitelisted=True)
+            wl_ip = Fail2banIps(ip=ip,
+                                active=False,
+                                jail=jail_name,
+                                host=get_reverse_name(),
+                                count=0,
+                                whitelisted=True)
             wl_ip.save()
 
     def set_jail_inactive(self, jail_name):
@@ -129,6 +131,13 @@ class Fail2banDB:
     def get_active_jail(self, jail_name):
         ips = []
         raw_ips = Fail2banIps().get_all_active_by_jail(jail_name)
+        for raw_ip in raw_ips:
+            ips.append(raw_ip.ip)
+        return ips
+
+    def get_inactive_jail(self, jail_name):
+        ips = []
+        raw_ips = Fail2banIps().get_all_active_by_jail(jail_name, active=False)
         for raw_ip in raw_ips:
             ips.append(raw_ip.ip)
         return ips
