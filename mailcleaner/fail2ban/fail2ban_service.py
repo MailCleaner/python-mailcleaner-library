@@ -138,7 +138,8 @@ class Fail2banService:
         """
         actions = [(Fail2banAction.TO_ADD, self.ban),
                    (Fail2banAction.TO_UPDATE, self.ban),
-                   (Fail2banAction.TO_REMOVE, self.unban)]
+                   (Fail2banAction.TO_REMOVE, self.unban),
+                   (Fail2banAction.TO_WL, self.whitelist)]
         jails = self.fail2banDB.get_jails()
         if len(jails) != 0:
             fail2ban_dump_path = self.fail2banDB.get_dump_file_path(
