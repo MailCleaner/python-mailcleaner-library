@@ -16,11 +16,9 @@ class MailCleanerBaseDump:
 
     def __init__(self):
         self._mc_config = MailCleanerConfig.get_instance()
-        logging.basicConfig(
-            filename='{}/{}/'.format(
-                self._mc_config.get_value('VARDIR'),
-                'log/mailcleaner/dumper.log'),
-            level=logging.DEBUG)
+        logging.basicConfig(filename='{}/{}/'.format(
+            self._mc_config.get_value('VARDIR'), 'log/mailcleaner/dumper.log'),
+                            level=logging.DEBUG)
 
     def __write_config(self, config_file_path: str, content: str):
         """
@@ -30,8 +28,8 @@ class MailCleanerBaseDump:
         :return: True if the configuration dumps is successfull, False otherwise
         """
         try:
-            with open(
-                    file=config_file_path, mode="w", encoding="utf-8") as file:
+            with open(file=config_file_path, mode="w",
+                      encoding="utf-8") as file:
                 file.writelines(content)
             return True
         except Exception as e:
@@ -141,5 +139,10 @@ class MailCleanerBaseDump:
                 destination_config_file_path))
         else:
             logging.info(
-                "An error occured during the creation of the configuration {}"
-                .format(destination_config_file_path))
+                "An error occured during the creation of the configuration {}".
+                format(destination_config_file_path))
+
+        def write_to_file(self, contents, destination_file) -> None:
+            f = open(destination_file_path, "w")
+            for content in contests:
+                f.write("{}\n".format(content))

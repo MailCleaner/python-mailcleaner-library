@@ -1,0 +1,52 @@
+Listen {{ http_port }}
+
+DocumentRoot "{{ SRCDIR }}/www/user/htdocs"
+Alias /admin {{ SRCDIR }}/www/guis/admin/public
+Alias /mrtg  {{ VARDIR }}/www/mrtg
+Alias /stats  {{ VARDIR }}/www/stats
+Alias /api {{ SRCDIR }}/www/api/public
+Alias /users {{ SRCDIR }}/www/guis/users/public
+
+{% if ssl_enabled %}
+Listen {{ https_port }}
+
+<VirtualHost *:{{ http_port }}>
+    AssignUserId mailcleaner mailcleaner
+
+#    <If "! -f '{{ SRCDIR }}/etc/apache/sites/configurator.conf.disabled'">
+#    	Redirect / http://{{ server_name }}:4242/
+#    </If>
+    Redirect / https://{{ server_name }}/
+
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
+    RewriteRule .* - [F]
+</VirtualHost>
+
+SSLSessionCache dbm:{{ VARDIR }}/run/ssl.cache
+SSLSessionCacheTimeout 300
+SSLCompression off
+<VirtualHost *:{{ https_port }}>
+    AssignUserId mailcleaner mailcleaner
+
+#    <If "! -f '{{ SRCDIR }}/etc/apache/sites/configurator.conf.disabled'">
+#    	Redirect / http://{{ server_name }}:4242/
+#    </If>
+
+    SSLEngine on
+    SSLProtocol All -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+    SSLCipherSuite ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA56-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+    SSLHonorCipherOrder on
+    SSLCompression off
+
+    SSLCACertificatePath {{ SRCDIR }}/etc/apache/certs
+    SSLCertificateFile {{ SRCDIR }}/etc/apache/certs/certificate.pem
+{   % if ssl_chain_exist %}  
+    SSLCertificateChainFile  {{ SRCDIR }}/etc/apache/certs/certificate-chain.pem
+    {% endif%}
+    SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
+    RewriteRule .* - [F]
+</VirtualHost>
+{% endif %}

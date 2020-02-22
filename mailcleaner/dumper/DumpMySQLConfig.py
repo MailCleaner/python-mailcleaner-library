@@ -37,9 +37,8 @@ class DumpMySQLConfig(MailCleanerBaseDump):
             template_config_src_file='etc/mysql/my_master.cnf_template',
             config_datas={
                 "VARDIR": self._mc_config.get_value("VARDIR"),
-                "SRCDIR": self._mc_config.get_value("SRCDIR"),
                 "MASTERID": MASTERID,
-                "BINARY_LOG_KEEP": self.binary_log_keep
+                "binary_log_keep": self.binary_log_keep
             })
 
     def dump_slave_config(self) -> None:
@@ -52,7 +51,6 @@ class DumpMySQLConfig(MailCleanerBaseDump):
             template_config_src_file='etc/mysql/my_slave.cnf_template',
             config_datas={
                 "VARDIR": self._mc_config.get_value("VARDIR"),
-                "SRCDIR": self._mc_config.get_value("SRCDIR"),
-                "SLAVEID": SLAVEID,
-                "BINARY_LOG_KEEP": self.binary_log_keep
+                "slave_id": SLAVEID,
+                "binary_log_keep": self.binary_log_keep
             })

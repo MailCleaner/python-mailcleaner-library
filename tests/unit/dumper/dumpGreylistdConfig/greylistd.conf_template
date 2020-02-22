@@ -1,0 +1,15 @@
+[timeouts]
+retryMin     = {{ retry_min }}
+retryMax     = {{ retry_max }}
+expire       = {{ expire }}
+
+[socket]
+path         = {{ VARDIR }}/run/greylistd/socket
+mode         = 0660
+
+[data]
+update       = 600
+
+statefile    = {{ VARDIR }}/spool/greylistd/states
+tripletfile  = {{ VARDIR }}/spool/greylistd/triplets
+savetriplets = true
