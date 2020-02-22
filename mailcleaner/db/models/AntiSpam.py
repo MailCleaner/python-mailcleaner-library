@@ -37,7 +37,7 @@ class AntiSpam(base, BaseModel):
     enable_blacklists = Column(Boolean, nullable=False, default=False)
     tag_mode_bypass_whitelist = Column(Boolean, nullable=False, default=True)
     trusted_ips = Column(BLOB)
-    use_ocr = Column(Boolean, nullable=False, default=True)
+    use_fuzzyocr = Column(Boolean, nullable=False, default=True)
     use_pdfinfo = Column(Boolean, nullable=False, default=True)
     use_imageinfo = Column(Boolean, nullable=False, default=True)
     use_botnet = Column(Boolean, nullable=False, default=True)

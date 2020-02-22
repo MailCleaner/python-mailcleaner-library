@@ -15,3 +15,6 @@ from .Slave import Slave
 from .Administrator import Administrator
 from .PreRBLs import PreRBLs
 from .UriRBLs import UriRBLs
+from .SNMPDConfig import SNMPDConfig
+from .GreylistdConfig import GreylistdConfig
+from .DnsList import DnsList
