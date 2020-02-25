@@ -6,6 +6,8 @@ try:
     from .fail2ban_db import Fail2banDB
     from .fail2ban_db import Fail2banAction
     from mailcleaner.logger import McLogger
+    from mailcleaner.db.models.Fail2banJail import Fail2banJail
+    from mailcleaner.db.models.Fail2banIps import Fail2banIps
 except Exception as err:
     log_file = "/var/mailcleaner/log/mc_fail2ban_script.log"
     logging.basicConfig(
@@ -79,10 +81,11 @@ class Fail2banService:
         if jail_name == None:
             jail_name = self.jail_name
 
-        if f2b_call:
+        if f2b_call and self.__safe_run(
+                "fail2ban-client status {} |grep {}".format(jail_name, ip),
+                False).return_code:
             self.__safe_run("fail2ban-client set {} banip {}".format(
                 jail_name, ip))
-
         self.__mcLogger.info("Banning=>{} inside jail=>{}".format(
             ip, jail_name))
 
@@ -155,14 +158,43 @@ class Fail2banService:
 
     def whitelist(self, ip, jail_name):
         self.fail2banDB.set_ip_jail_whitelisted(ip, jail_name)
-        self.__safe_run("fail2ban-client set {} addignoreip {}".format(
-            jail_name, ip))
+        if not self.__safe_run(
+                "fail2ban-client get {} ignoreip |sed 's/^.*- //'|grep '{}'".
+                format(jail_name, ip)).return_code:
+            self.__safe_run("fail2ban-client set {} addignoreip {}".format(
+                jail_name, ip))
 
     def reload_fw(self):
         self.__mcLogger.debug("Reload Firewall called")
+        jails = Fail2banJail().all()
+        for jail in jails:
+            self.__safe_run("iptables -N fail2ban-{}".format(jail.name))
+            self.__safe_run("iptables -A fail2ban-{} -j RETURN".format(
+                jail.name))
+            self.__safe_run(
+                "iptables -I INPUT -p tcp -m multiport --dports {} -j fail2ban-{}"
+                .format(jail.port, jail.name))
+            self.__safe_run("iptables -N fail2ban-{}-bl".format(jail.name))
+            self.__safe_run("iptables -A fail2ban-{}-bl -j RETURN".format(
+                jail.name))
+            self.__safe_run(
+                "iptables -I INPUT -p tcp -m multiport --dports {} -j fail2ban-{}-bl"
+                .format(jail.port, jail.name))
+            ips = Fail2banIps.get_all_active_by_jail(jail.name)
+            for ip in ips:
+                print("iptables -I fail2ban-{} 1 -s {} -j REJECT".format(
+                    jail.name, ip.ip))
+                self.__safe_run(
+                    "iptables -I fail2ban-{} 1 -s {} -j REJECT".format(
+                        jail.name, ip.ip))
+            bl_ips = Fail2banIps.find_by_blacklisted_and_jail(jail=jail.name)
+            for bl_ip in bl_ips:
+                print("iptables -I fail2ban-{}-bl 1 -s {} -j REJECT".format(
+                    jail.name, ip.ip))
+                self.__safe_run(
+                    "iptables -I fail2ban-{}-bl 1 -s {} -j REJECT".format(
+                        jail.name, ip.ip))
         self.treat_dumps()
-        self.__ban_from_mysql()
-        self.__blacklist_from_mysql()
 
     def treat_cron(self):
         self.__mcLogger.debug("Treat cron called")
@@ -187,35 +219,50 @@ class Fail2banService:
         for jail in jails:
             ips = Fail2banDB().get_active_jail(jail)
             for ip in ips:
-                self.__safe_run("fail2ban-client set {} banip {}".format(
-                    jail, ip))
+                if self.__safe_run(
+                        "fail2ban-client status {} |grep {}".format(jail, ip),
+                        False, True).return_code:
+                    self.__safe_run("fail2ban-client set {} banip {}".format(
+                        jail, ip))
 
     def __unban_from_mysql(self):
         jails = Fail2banDB().get_jails()
         for jail in jails:
             ips = Fail2banDB().get_inactive_jail(jail)
             for ip in ips:
-                self.__safe_run("fail2ban-client set {} unbanip {}".format(
-                    jail, ip),
-                                raise_failures=False)
+                if not self.__safe_run(
+                        "fail2ban-client status {} |grep {}".format(jail, ip),
+                        False, True).return_code:
+                    self.__safe_run("fail2ban-client set {} unbanip {}".format(
+                        jail, ip),
+                                    raise_failures=False)
 
     def __whitelist_from_mysql(self):
         jails = Fail2banDB().get_jails()
         for jail in jails:
             ips = Fail2banDB().get_whitelist_jail(jail)
             for ip in ips:
-                self.__safe_run("fail2ban-client set {} addignoreip {}".format(
-                    jail, ip))
+                if self.__safe_run(
+                        "fail2ban-client get {} ignoreip |sed 's/^.*- //'|grep '{}'"
+                        .format(jail, ip),
+                        hide=True).return_code:
+                    self.__safe_run(
+                        "fail2ban-client set {} addignoreip {}".format(
+                            jail, ip))
 
     def __blacklist_from_mysql(self):
         jails = Fail2banDB().get_jails()
         for jail in jails:
             ips = Fail2banDB().get_blacklist_jail(jail)
             for ip in ips:
-                self.__safe_run("fail2ban-client set {}-bl banip {}".format(
-                    jail, ip))
+                if not self.__safe_run(
+                        "fail2ban-client status {}-bl |grep {}".format(
+                            jail, ip), False, True).return_code:
+                    self.__safe_run(
+                        "fail2ban-client set {}-bl banip {}".format(jail, ip),
+                        hide=True)
 
-    def __safe_run(self, cmd: str, raise_failures=True):
+    def __safe_run(self, cmd: str, raise_failures=True, hide=False):
         """
         This function has the responsability to handle results
         and raise an exception if an uknown and unwanted error occured.
@@ -223,7 +270,7 @@ class Fail2banService:
         :param raise_failures: Raise exception in case of failure (Exit code different than 0 - Unix exit code)
         :return: Return a Result object http://docs.pyinvoke.org/en/latest/api/runners.html#invoke.runners.Result
         """
-        command = run(cmd, warn=True)
+        command = run(cmd, warn=True, hide=hide)
         if raise_failures and command.failed:
             raise Fail2banException(
                 "An error occured during the run of the command " +
