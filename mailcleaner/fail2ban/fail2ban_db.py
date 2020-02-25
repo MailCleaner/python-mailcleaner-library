@@ -109,7 +109,7 @@ class Fail2banDB:
                                         Fail2banAction.TO_BL.value)
         return return_code
 
-    def unban_row(self, ip, jail_name):
+    def unban_row(self, ip: str, jail_name: str) -> None:
         """ 
         Set the active column to false in MySql for the couple ip, jail_name
         Resets the count and blacklisted value
@@ -131,7 +131,7 @@ class Fail2banDB:
                 self.__log_and_dump(ip, jail_name,
                                     Fail2banAction.TO_REMOVE.value)
 
-    def set_ip_jail_whitelisted(self, ip, jail_name):
+    def set_ip_jail_whitelisted(self, ip: str, jail_name: str):
         try:
             wl_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
         except OperationalError as err:
@@ -152,7 +152,7 @@ class Fail2banDB:
             except OperationalError as err:
                 self.__log_and_dump(ip, jail_name, Fail2banAction.TO_WL.value)
 
-    def set_jail_inactive(self, jail_name):
+    def set_jail_inactive(self, jail_name: str) -> None:
         mc_jail = Fail2banJail().find_by_name(jail_name)
         mc_jail.enabled = False
         mc_jail.save()
@@ -164,42 +164,43 @@ class Fail2banDB:
             jails.append(row_jail.name)
         return jails
 
-    def get_active_jail(self, jail_name):
+    def get_active_jail(self, jail_name: str):
         ips = []
         raw_ips = Fail2banIps().get_all_active_by_jail(jail_name)
         for raw_ip in raw_ips:
             ips.append(raw_ip.ip)
         return ips
 
-    def get_inactive_jail(self, jail_name):
+    def get_inactive_jail(self, jail_name: str):
         ips = []
         raw_ips = Fail2banIps().get_all_active_by_jail(jail_name, active=False)
         for raw_ip in raw_ips:
             ips.append(raw_ip.ip)
         return ips
 
-    def get_whitelist_jail(self, jail_name):
+    def get_whitelist_jail(self, jail_name: str):
         ips = []
         raw_ips = Fail2banIps().find_by_whitelisted_and_jail(jail_name)
         for raw_ip in raw_ips:
             ips.append(raw_ip.ip)
         return ips
 
-    def get_blacklist_jail(self, jail_name):
+    def get_blacklist_jail(self, jail_name: str):
         ips = []
         raw_ips = Fail2banIps().find_by_blacklisted_and_jail(jail_name)
         for raw_ip in raw_ips:
             ips.append(raw_ip.ip)
         return ips
 
-    def check_blacklisted(self, ip, jail_name):
+    def check_blacklisted(self, ip, jail_name: str):
         return Fail2banIps().find_by_blacklisted_and_jail(
             jail_name) is not None
 
-    def delete_all_rows_jail(self, jail_name):
+    def delete_all_rows_jail(self, jail_name: str):
         return Fail2banIps().reset_jail_ips(jail_name)
 
-    def __log_and_dump(self, ip, jail_name, action):
+    def __log_and_dump(self, ip, jail_name: str,
+                       action: Fail2banAction) -> None:
         """Log the error and dump info in files
         
         Arguments:
@@ -207,10 +208,11 @@ class Fail2banDB:
             jail_name {str} -- Jail name 
             action {str} -- Action to do in mysql
         """
-        self.__mcLogger.warn(ip + "=>" + jail_name +
-                             " Cannot add/update mysql dumping into file")
+        self.__mcLogger.warn(
+            "{}=>{} Cannot add/update mysql dumping into file".format(
+                ip, jail_name))
         tf = 'dump_fail2ban_' + jail_name + '_' + action
         f = open(self.dump_file_path + tf, 'a+')
         f.write(ip + "\n")
         f.close()
-        self.__mcLogger.info("ip wrote into " + tf)
+        self.__mcLogger.info("ip wrote into {}".format(tf))
