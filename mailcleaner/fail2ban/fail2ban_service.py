@@ -98,6 +98,11 @@ class Fail2banService:
                 self.__safe_run("fail2ban-client set {}-bl banip {}".format(
                     jail_name, ip))
 
+    def blacklist(self, ip: str, jail_name: str, db_insert: str = True) -> None:
+        if db_insert:
+            self.fail2banDB.set_ip_jail_blacklisted(ip, jail_name)
+        self.__safe_run("fail2ban-client set {}-bl banip {}".format(jail_name, ip))
+
     def unban(self,
               ip: str = None,
               jail_name: str = None,
@@ -147,7 +152,8 @@ class Fail2banService:
         actions = [(Fail2banAction.TO_ADD, self.ban),
                    (Fail2banAction.TO_UPDATE, self.ban),
                    (Fail2banAction.TO_REMOVE, self.unban),
-                   (Fail2banAction.TO_WL, self.whitelist)]
+                   (Fail2banAction.TO_WL, self.whitelist),
+                   (Fail2banAction.TO_BL, self.blacklist)]
         jails = self.fail2banDB.get_jails()
         if len(jails) != 0:
             fail2ban_dump_path = self.fail2banDB.get_dump_file_path(

@@ -123,13 +123,33 @@ class Fail2banDB:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_REMOVE.value)
         if mc_ban_ip is not None:
             mc_ban_ip.active = False
-            mc_ban_ip.count = 0
             mc_ban_ip.blacklisted = False
             try:
                 mc_ban_ip.save()
             except OperationalError as err:
                 self.__log_and_dump(ip, jail_name,
                                     Fail2banAction.TO_REMOVE.value)
+
+    def set_ip_jail_blacklisted(self, ip: str, jail_name: str):
+        try:
+            bl_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
+        except OperationalError as err:
+            self.__log_and_dump(ip, jail_name, Fail2banAction.TO_WL.value)
+        if bl_ip is not None:
+            bl_ip.blacklisted = True
+            bl_ip.active = True
+            bl_ip.save()
+        else:
+            bl_ip = Fail2banIps(ip=ip,
+                                active=False,
+                                jail=jail_name,
+                                host=get_reverse_name(),
+                                count=0,
+                                blacklisted=True)
+            try:
+                bl_ip.save()
+            except OperationalError as err:
+                self.__log_and_dump(ip, jail_name, Fail2banAction.TO_WL.value)
 
     def set_ip_jail_whitelisted(self, ip: str, jail_name: str):
         try:

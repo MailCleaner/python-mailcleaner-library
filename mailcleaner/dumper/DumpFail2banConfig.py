@@ -20,6 +20,14 @@ class DumpFail2banConfig(MailCleanerBaseDump):
         self.dump_exim_jail_conf()
         self.dump_webauth_jail_conf()
 
+    def dump_all_from_mysql(self) -> None:
+        """
+        Dump all jails in DB
+        """
+        jails = Fail2banJail().get_jails()
+        for jail in jails:
+            self.__dump_jail(jail[0])
+
     def dump_ssh_jail_conf(self) -> None:
         """
         Dump SSH jail configuration.
