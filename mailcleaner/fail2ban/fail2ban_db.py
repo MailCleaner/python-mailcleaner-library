@@ -49,7 +49,7 @@ class Fail2banDB:
         return_code = 0
         try:
             mc_ban_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
-        except OperationalError as err:
+        except OperationalError:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_ADD.value)
             exit
         if mc_ban_ip is not None:
@@ -62,7 +62,7 @@ class Fail2banDB:
                                count=1)
             try:
                 test.save()
-            except OperationalError as err:
+            except OperationalError:
                 self.__log_and_dump(ip, jail_name, Fail2banAction.TO_ADD.value)
                 exit
         return return_code
@@ -84,7 +84,7 @@ class Fail2banDB:
         return_code = 3
         try:
             mc_ban_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
-        except OperationalError as err:
+        except OperationalError:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_UPDATE.value)
             exit
         if mc_ban_ip is not None:
@@ -100,7 +100,7 @@ class Fail2banDB:
                 return_code = 2
             try:
                 mc_ban_ip.save()
-            except OperationalError as err:
+            except OperationalError:
                 if return_code == 1:
                     self.__log_and_dump(ip, jail_name,
                                         Fail2banAction.TO_UPDATE.value)
@@ -119,21 +119,21 @@ class Fail2banDB:
         """
         try:
             mc_ban_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
-        except OperationalError as err:
+        except OperationalError:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_REMOVE.value)
         if mc_ban_ip is not None:
             mc_ban_ip.active = False
             mc_ban_ip.blacklisted = False
             try:
                 mc_ban_ip.save()
-            except OperationalError as err:
+            except OperationalError:
                 self.__log_and_dump(ip, jail_name,
                                     Fail2banAction.TO_REMOVE.value)
 
     def set_ip_jail_blacklisted(self, ip: str, jail_name: str):
         try:
             bl_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
-        except OperationalError as err:
+        except OperationalError:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_WL.value)
         if bl_ip is not None:
             bl_ip.blacklisted = True
@@ -148,13 +148,13 @@ class Fail2banDB:
                                 blacklisted=True)
             try:
                 bl_ip.save()
-            except OperationalError as err:
+            except OperationalError:
                 self.__log_and_dump(ip, jail_name, Fail2banAction.TO_WL.value)
 
     def set_ip_jail_whitelisted(self, ip: str, jail_name: str):
         try:
             wl_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
-        except OperationalError as err:
+        except OperationalError:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_WL.value)
         if wl_ip is not None:
             wl_ip.whitelisted = True
@@ -169,12 +169,27 @@ class Fail2banDB:
                                 whitelisted=True)
             try:
                 wl_ip.save()
-            except OperationalError as err:
+            except OperationalError:
                 self.__log_and_dump(ip, jail_name, Fail2banAction.TO_WL.value)
 
     def set_jail_inactive(self, jail_name: str) -> None:
         mc_jail = Fail2banJail().find_by_name(jail_name)
         mc_jail.enabled = False
+        mc_jail.save()
+
+    def set_jail_active(self, jail_name: str) -> None:
+        mc_jail = Fail2banJail().find_by_name(jail_name)
+        mc_jail.enabled = True
+        mc_jail.save()
+
+    def set_jail_config(self, jail_name: str, option: str, value: int) -> None:
+        mc_jail = Fail2banJail().find_by_name(jail_name)
+        if option == "findtime":
+            mc_jail.findtime = value
+        elif option == "bantime":
+            mc_jail.bantime = value
+        elif option == "maxretry":
+            mc_jail.maxretry = value
         mc_jail.save()
 
     def get_jails(self):
@@ -212,9 +227,17 @@ class Fail2banDB:
             ips.append(raw_ip.ip)
         return ips
 
-    def check_blacklisted(self, ip, jail_name: str):
+    def check_blacklisted(self, ip, jail_name: str) -> bool:
         return Fail2banIps().find_by_blacklisted_and_jail(
             jail_name) is not None
+
+    def disable_blacklist(self, jail_name: str):
+        jail = Fail2banJail().find_by_name(jail_name)
+        jail.max_count = -1
+        jail.save()
+        ips = Fail2banIps().find_by_blacklisted_and_jail(jail_name, True)
+        for ip in ips:
+            ip.delete()
 
     def delete_all_rows_jail(self, jail_name: str):
         return Fail2banIps().reset_jail_ips(jail_name)
@@ -229,10 +252,10 @@ class Fail2banDB:
             action {str} -- Action to do in mysql
         """
         self.__mcLogger.warn(
-            "{}=>{} Cannot add/update mysql dumping into file".format(
+            "{0}=>{1} Cannot add/update mysql dumping into file".format(
                 ip, jail_name))
         tf = 'dump_fail2ban_' + jail_name + '_' + action
         f = open(self.dump_file_path + tf, 'a+')
         f.write(ip + "\n")
         f.close()
-        self.__mcLogger.info("ip wrote into {}".format(tf))
+        self.__mcLogger.info("ip wrote into {0}".format(tf))

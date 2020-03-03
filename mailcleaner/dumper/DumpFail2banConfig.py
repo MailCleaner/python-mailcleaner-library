@@ -10,7 +10,6 @@ class DumpFail2banConfig(MailCleanerBaseDump):
     """
     Fail2ban Dumper - This dumper take care of dumping fail2ban jails.
     """
-
     def dump(self) -> None:
         """
         Dump Fail2Ban jails configuration files.
@@ -48,6 +47,11 @@ class DumpFail2banConfig(MailCleanerBaseDump):
         :return None
         """
         self.__dump_jail("mc-webauth")
+
+    def dump_jail(self, jail: str) -> None:
+        mc_jail = Fail2banJail.find_by_name(name=jail)
+        if mc_jail != None:
+            self.__dump_jail(jail)
 
     def __dump_jail(self, jail: str) -> None:
         """

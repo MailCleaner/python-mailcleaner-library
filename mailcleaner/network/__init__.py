@@ -68,6 +68,7 @@ def get_helo_name() -> str:
     _mcLogger.debug("Helo name: {}".format(helo_name))
     return helo_name
 
+
 def get_reverse_name() -> str:
     """
     Determine the revered dns name of the ip
@@ -75,9 +76,17 @@ def get_reverse_name() -> str:
     """
     reversed_ip = ''
     try:
-        reversed_ip = socket.gethostbyaddr(netifaces.ifaddresses('eth0')[
-                    netifaces.AF_INET][0]['addr'])[0]
+        reversed_ip = socket.gethostbyaddr(
+            netifaces.ifaddresses('eth0')[netifaces.AF_INET][0]['addr'])[0]
         _mcLogger.debug("Reversed name: {}".format(reversed_ip))
     except Exception as e:
-        _mcLogger.error("An error occured in resolving reversed ip: {}".format(e))
+        _mcLogger.error(
+            "An error occured in resolving reversed ip: {}".format(e))
     return reversed_ip
+
+
+def get_interfaces() -> list:
+    interfaces = run("ls -h /sys/class/net/ | sed 's/^.*\///'",
+                     hide=True).stdout.split('\n')
+    interfaces = [i for i in interfaces if i]
+    return interfaces
