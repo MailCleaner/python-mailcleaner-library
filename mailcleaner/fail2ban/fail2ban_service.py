@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import subprocess, sys, os
 import logging
+import requests
 try:
     from mailcleaner.config import MailCleanerConfig
     from .fail2ban_db import Fail2banDB
@@ -87,6 +88,7 @@ class Fail2banService:
             ip, jail_name))
 
         if db_insert:
+            requests.post('https://f2brbl.mailcleaner.net/ip?ip={}&jail={}&host_id={}'.format(ip, jail_name, MailCleanerConfig.get_instance().get_value("CLIENTID")))
             ret = self.fail2banDB.insert_row(ip, jail_name)
             if ret == 2:
                 self.__mcLogger.warn("Blacklisting {0} from {1}".format(
