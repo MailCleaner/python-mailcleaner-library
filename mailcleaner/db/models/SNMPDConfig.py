@@ -1,16 +1,19 @@
+
+#!/usr/bin/env python3
 from mailcleaner.db import base, session
-from sqlalchemy import Column, Integer, String, Boolean, BLOB
+from sqlalchemy import Column, String, BLOB
+from sqlalchemy.dialects.mysql import INTEGER
 import factory
 from . import BaseModel
 
 
 class SNMPDConfig(base, BaseModel):
     """
-    Slave table
+    snmpd_config table
     """
     __tablename__ = 'snmpd_config'
 
-    set_id = Column(Integer, primary_key=True, nullable=False, default=1)
+    set_id = Column(INTEGER(11), primary_key=True, nullable=False, default=1)
     allowed_ip = Column(String(200), nullable=True, default='127.0.0.1')
     community = Column(String(200), nullable=True, default='mailcleaner')
     disks = Column(String(200), nullable=True, default='/:/var')

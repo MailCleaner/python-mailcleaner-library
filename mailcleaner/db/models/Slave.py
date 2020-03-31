@@ -1,18 +1,22 @@
+#!/usr/bin/env python3
+
 from mailcleaner.db import base, session
 from sqlalchemy import Column, Integer, String, Boolean, BLOB
+from sqlalchemy import Column, String, BLOB
+from sqlalchemy.dialects.mysql import INTEGER
 import factory
 from . import BaseModel
 
 
 class Slave(base, BaseModel):
     """
-    Slave table
+    slave table
     """
     __tablename__ = 'slave'
 
-    id = Column(Integer, primary_key=True, nullable=False)
+    id = Column(INTEGER(11), nullable=False, primary_key=True)
     hostname = Column(String(150), nullable=False, default='127.0.0.1')
-    port = Column(Integer, nullable=False, default=3307)
+    port = Column(INTEGER(11), nullable=False, default=3307)
     password = Column(String(100), nullable=True, default='')
     ssh_pub_key = Column(BLOB, nullable=True)
 
