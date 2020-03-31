@@ -7,6 +7,8 @@ import sqlalchemy as db
 from mailcleaner.config import MailCleanerConfig
 
 from mailcleaner.db.config import DBConfig
+
+from os import environ
 """
 Creation and initialization of database session.
 
@@ -19,6 +21,7 @@ Creation and initialization of database session.
 class DBPort(Enum):
     MASTER = 3306
     SLAVE = 3307
+    PROXY = 3309
 
 
 def is_master():
@@ -42,7 +45,9 @@ def get_db_connection_uri(database: str = DBConfig.DB_NAME.value,
     """
 
     mysql_uri_connection = 'mysql+pymysql://' + DBConfig.DB_USER.value + ":" + DBConfig.DB_PASSWORD.value + "@"
-    if master:
+    if "USE_SQL_PROXY" in environ:
+        mysql_uri_connection += ":" + str(DBPort.PROXY.value)
+    elif master:
         mysql_uri_connection += ":" + str(DBPort.MASTER.value)
     else:
         mysql_uri_connection += ":" + str(DBPort.SLAVE.value)
