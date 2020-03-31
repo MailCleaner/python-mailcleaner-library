@@ -6,6 +6,7 @@ try:
     from mailcleaner.config import MailCleanerConfig
     from .fail2ban_db import Fail2banDB
     from .fail2ban_db import Fail2banAction
+    from .fail2ban_db import InsertError
     from mailcleaner.logger import McLogger
     from mailcleaner.db.models.Fail2banJail import Fail2banJail
     from mailcleaner.db.models.Fail2banIps import Fail2banIps
@@ -88,9 +89,12 @@ class Fail2banService:
             ip, jail_name))
 
         if db_insert:
-            requests.post('https://f2brbl.mailcleaner.net/ip?ip={}&jail={}&host_id={}'.format(ip, jail_name, MailCleanerConfig.get_instance().get_value("CLIENTID")))
+            requests.post(
+                'https://f2brbl.mailcleaner.net/ip?ip={}&jail={}&host_id={}'.
+                format(ip, jail_name,
+                       MailCleanerConfig.get_instance().get_value("CLIENTID")))
             ret = self.fail2banDB.insert_row(ip, jail_name)
-            if ret == 2:
+            if ret == InsertError.BLACKLISTED.value:
                 self.__mcLogger.warn("Blacklisting {0} from {1}".format(
                     ip, jail_name))
                 self.__safe_run("fail2ban-client set {0}-bl banip {1}".format(

@@ -18,6 +18,18 @@ class Fail2banAction(Enum):
     TO_BL = "to_bl"
 
 
+class InsertError(Enum):
+    CREATED = 0
+    UPDATED = 1
+    BLACKLISTED = 2
+
+
+class UpdateError(Enum):
+    BANNED = 1
+    BLACKLISTED = 2
+    ERROR = 3
+
+
 class Fail2banDB:
     dump_file_path = ''
     __mcLogger = None
@@ -46,7 +58,8 @@ class Fail2banDB:
                      1 => Updated
                      2 => Blacklisted
         """
-        return_code = 0
+        Enum
+        return_code = InsertError.CREATED.value
         try:
             mc_ban_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
         except OperationalError:
@@ -81,14 +94,14 @@ class Fail2banDB:
                      2 => Blacklisted
                      3 => Error
         """
-        return_code = 3
+        return_code = UpdateError.ERROR.value
         try:
             mc_ban_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
         except OperationalError:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_UPDATE.value)
             exit
         if mc_ban_ip is not None:
-            return_code = 1
+            return_code = UpdateError.BANNED.value
             mc_ban_ip.active = True
             mc_ban_ip.count += 1
             mc_ban_ip.host = get_reverse_name()
@@ -97,11 +110,11 @@ class Fail2banDB:
                     and mc_ban_ip.count >
                     Fail2banJail().find_by_name(jail_name).max_count):
                 mc_ban_ip.blacklisted = True
-                return_code = 2
+                return_code = UpdateError.BLACKLISTED.value
             try:
                 mc_ban_ip.save()
             except OperationalError:
-                if return_code == 1:
+                if return_code == UpdateError.BANNED.value:
                     self.__log_and_dump(ip, jail_name,
                                         Fail2banAction.TO_UPDATE.value)
                 else:
