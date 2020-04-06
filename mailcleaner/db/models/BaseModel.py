@@ -46,8 +46,8 @@ class BaseModel(AutoRepr):
         Delete the current object (self).
         :return:
         """
-        session.delete(self)
-        session.commit()
+        session().delete(self)
+        session().using_bind("m_master").commit()
 
     def save(self) -> None:
         """

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from mailcleaner.db import base, session
-from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP
+from sqlalchemy import Column, Integer, String, Boolean, TIMESTAMP, UniqueConstraint
 from sqlalchemy.sql import func
 import factory
 from . import BaseModel
@@ -21,6 +21,7 @@ class Fail2banIps(base, BaseModel):
     jail = Column(String(20), nullable=False)
     last_hit = Column(TIMESTAMP, server_default=func.now())
     host = Column(String(150), nullable=False)
+    UniqueConstraint('ip', 'jail', name='UC_IP_JAIL')
 
     @classmethod
     def find_by_id(cls, id: int):
@@ -50,12 +51,14 @@ class Fail2banIps(base, BaseModel):
     @classmethod
     def find_by_whitelisted_and_jail(cls, jail: str, whitelisted: bool = True):
         return session.query(Fail2banIps).filter(
-            Fail2banIps.whitelisted == whitelisted, Fail2banIps.jail == jail).all()
+            Fail2banIps.whitelisted == whitelisted,
+            Fail2banIps.jail == jail).all()
 
     @classmethod
     def find_by_blacklisted_and_jail(cls, jail: str, blacklisted: bool = True):
         return session.query(Fail2banIps).filter(
-            Fail2banIps.blacklisted == blacklisted, Fail2banIps.jail == jail).all()
+            Fail2banIps.blacklisted == blacklisted,
+            Fail2banIps.jail == jail).all()
 
     @classmethod
     def find_by_blacklisted_and_ip_and_jail(cls, blacklisted: bool, ip: str,
@@ -72,15 +75,29 @@ class Fail2banIps(base, BaseModel):
             Fail2banIps.jail == jail).first()
 
     @classmethod
-    def get_all_active_by_jail(cls, jail:str, active:bool = True):
+    def get_all_active_by_jail(cls, jail: str, active: bool = True):
         return session.query(Fail2banIps).filter(
-            Fail2banIps.active==active,
-            Fail2banIps.jail==jail).all()
+            Fail2banIps.active == active, Fail2banIps.jail == jail,
+            Fail2banIps.whitelisted == False,
+            Fail2banIps.blacklisted == False).all()
+
     @classmethod
-    def set_all_active(cls, active:bool = False):
+    def set_all_active(cls, active: bool = False):
         actives = session.query(Fail2banIps).filter_by(active=active).all()
         for active in actives:
             active.active = active
+        session.flush()
+        session.commit()
+
+    @classmethod
+    def reset_jail_ips(cls, jail_name: str):
+        ips = session.query(Fail2banIps).filter(
+            Fail2banIps.jail == jail_name, Fail2banIps.whitelisted == 0).all()
+        for ip in ips:
+            ip.active = False
+            ip.count = 0
+            ip.blacklisted = False
+            ip.last_hit = None
         session.flush()
         session.commit()
 
@@ -95,6 +112,7 @@ class Fail2banIpsFactory(factory.alchemy.SQLAlchemyModelFactory):
     jail = ""
     last_hit = func.now()
     host = ""
+
     class Meta:
         model = Fail2banIps
         sqlalchemy_session = session

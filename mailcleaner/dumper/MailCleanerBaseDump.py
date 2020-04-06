@@ -16,9 +16,11 @@ class MailCleanerBaseDump:
 
     def __init__(self):
         self._mc_config = MailCleanerConfig.get_instance()
-        logging.basicConfig(filename='{}/{}/'.format(
-            self._mc_config.get_value('VARDIR'), 'log/mailcleaner/dumper.log'),
-                            level=logging.DEBUG)
+        logging.basicConfig(
+            filename='{}/{}/'.format(
+                self._mc_config.get_value('VARDIR'),
+                'log/mailcleaner/dumper.log'),
+            level=logging.DEBUG)
 
     def __write_config(self, config_file_path: str, content: str):
         """
@@ -28,8 +30,8 @@ class MailCleanerBaseDump:
         :return: True if the configuration dumps is successfull, False otherwise
         """
         try:
-            with open(file=config_file_path, mode="w",
-                      encoding="utf-8") as file:
+            with open(
+                    file=config_file_path, mode="w", encoding="utf-8") as file:
                 file.writelines(content)
             return True
         except Exception as e:
@@ -95,14 +97,14 @@ class MailCleanerBaseDump:
         except Exception as e:
             logging.error("An exception occured during the dump of the config {} with the following error: \n{}")\
                 .format(template_config_src_file, str(e))
-            print("An exception occured during the dump of the config {} with the following error: \n{}")\
-                .format(template_config_src_file, str(e))
             exit(code=255)
 
         return ""
 
-    def dump_template(self, template_config_src_file: str,
-                      config_datas: dict) -> None:
+    def dump_template(self,
+                      template_config_src_file: str,
+                      config_datas: dict,
+                      destination_config_src_file: str = "") -> None:
         """
         Generate a new configuration based on the template file and the configurations datas. Also, dump (write) in place
         the new configuration file.
@@ -117,7 +119,12 @@ class MailCleanerBaseDump:
 
         # Write the configuration into the final configuration file
         template_config_file_path = self._mc_config.get_value(
-            'SRCDIR') + os.path.sep + template_config_src_file
+            'SRCDIR') + os.path.sep
+        if destination_config_src_file != "":
+            template_config_file_path += destination_config_src_file
+        else:
+            template_config_file_path += template_config_src_file
+
         _, template_config_filename = os.path.split(
             template_config_file_path
         )  # Extract only the filename for rendering
@@ -126,12 +133,13 @@ class MailCleanerBaseDump:
         if "_template" in template_config_file_path:
             destination_config_file_path = template_config_file_path.replace(
                 "_template", "")
-            if self.__write_config(destination_config_file_path,
-                                   configuration_content):
-                logging.info(
-                    "New configuration successfuly writted to {}".format(
-                        destination_config_file_path))
-            else:
-                logging.info(
-                    "An error occured during the creation of the configuration {}"
-                    .format(destination_config_file_path))
+        else:
+            destination_config_file_path = template_config_file_path
+        if self.__write_config(destination_config_file_path,
+                               configuration_content):
+            logging.info("New configuration successfuly writted to {}".format(
+                destination_config_file_path))
+        else:
+            logging.info(
+                "An error occured during the creation of the configuration {}"
+                .format(destination_config_file_path))
