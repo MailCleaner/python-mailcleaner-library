@@ -61,17 +61,22 @@ def get_db_connection_uri(database: str = DBConfig.DB_NAME.value,
 
 engines = {
     'm_master':
-    db.create_engine(
-        'mysql+pymysql://' + DBConfig.DB_USER.value + ":" +
-        DBConfig.DB_MASTER_PWD.value + "@" + DBConfig.DB_MASTER_IP.value + ":" +
-        str(DBPort.MASTER.value) + "/mc_config",
-        logging_name='m_master'),
+    db.create_engine('mysql+pymysql://' + DBConfig.DB_USER.value + ":" +
+                     DBConfig.DB_MASTER_PWD.value + "@" +
+                     DBConfig.DB_MASTER_IP.value + ":" +
+                     str(DBPort.MASTER.value) + "/mc_config",
+                     logging_name='m_master'),
     's_slave':
-    db.create_engine(
-        'mysql+pymysql://' + DBConfig.DB_USER.value + ":" +
-        DBConfig.DB_PASSWORD.value + "@:" + str(DBPort.SLAVE.value) +
-        "/mc_config",
-        logging_name='s_slave'),
+    db.create_engine('mysql+pymysql://' + DBConfig.DB_USER.value + ":" +
+                     DBConfig.DB_PASSWORD.value + "@:" +
+                     str(DBPort.SLAVE.value) + "/mc_config",
+                     logging_name='s_slave'),
+    'm_community':
+    db.create_engine('mysql+pymysql://' + DBConfig.DB_USER.value + ":" +
+                     DBConfig.DB_MASTER_PWD.value + "@" +
+                     DBConfig.DB_MASTER_IP.value + ":" +
+                     str(DBPort.MASTER.value) + "/mc_community",
+                     logging_name='m_master'),
 }
 
 

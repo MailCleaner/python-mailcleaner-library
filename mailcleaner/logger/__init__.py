@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 import os
 import logging
@@ -42,16 +43,16 @@ class McLogger(object):
             project = project + "/"
 
         #Testing path
-        full_path = "{}/log/{}".format(
-            self._mc_config.get_value("VARDIR"), project)
+        full_path = "{}/log/{}".format(self._mc_config.get_value("VARDIR"),
+                                       project)
         if not os.path.isdir(full_path):
             os.mkdir(full_path)
 
         # Logger configuration.
         self.console_formatter = logging.Formatter(self.format,
                                                    "%Y-%m-%d %H:%M:%S")
-        self.console_logger = logging.FileHandler(
-            "{}{}.log".format(full_path, filename))
+        self.console_logger = logging.FileHandler("{}{}.log".format(
+            full_path, filename))
         self.console_logger.setFormatter(self.console_formatter)
 
         self.logger = logging.getLogger(name)

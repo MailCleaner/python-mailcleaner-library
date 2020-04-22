@@ -11,9 +11,8 @@ class DNSList(base, BaseModel):
     """
     __tablename__ = 'dnslist'
 
-    name = Column(String(40), nullable=Flase, primary_key=True)
-    url = Column(String(250), nullable=Flase)
-    type = Column(String(20), nullable=Flase, default="blacklist")
-    active = Column(Boolean, nullable=Flase, default=True)
+    name = Column(String(40), nullable=False, primary_key=True)
+    url = Column(String(250), nullable=False)
+    type = Column(String(20), nullable=False, default="blacklist")
+    active = Column(Boolean, nullable=False, default=True)
     comment = Column(BLOB, nullable=True)
-

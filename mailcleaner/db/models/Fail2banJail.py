@@ -23,6 +23,7 @@ class Fail2banJail(base, BaseModel):
     banaction = Column(String(50), nullable=False)
     logpath = Column(String(250), nullable=False)
     max_count = Column(Integer, nullable=False)
+    send_mail_bl = Column(Boolean, nullable=True, default=True)
 
     @classmethod
     def find_by_id(cls, id: int):

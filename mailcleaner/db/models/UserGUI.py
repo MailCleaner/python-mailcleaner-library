@@ -12,7 +12,7 @@ class UserGUI(base, BaseModel):
     """
     __tablename__ = 'user_gui'
 
-    set_id = Column(INTEGER(11), nullable=False, default=1)
+    set_id = Column(INTEGER(11), nullable=False, primary_key=True, default=1)
     want_domainchooser = Column(Boolean, nullable=False, default=True)
     want_aliases = Column(Boolean, nullable=False, default=True)
     want_search = Column(Boolean, nullable=False, default=True)

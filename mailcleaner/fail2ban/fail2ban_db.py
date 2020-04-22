@@ -136,25 +136,28 @@ class Fail2banDB:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_REMOVE.value)
         if mc_ban_ip is not None:
             mc_ban_ip.active = False
-            mc_ban_ip.blacklisted = False
             try:
                 mc_ban_ip.save()
             except OperationalError:
                 self.__log_and_dump(ip, jail_name,
                                     Fail2banAction.TO_REMOVE.value)
 
-    def set_ip_jail_blacklisted(self, ip: str, jail_name: str):
+    def set_ip_jail_blacklisted(self, ip: str, jail_name: str,
+                                blacklisted: bool):
         try:
             bl_ip = Fail2banIps().find_by_ip_and_jail(ip, jail_name)
         except OperationalError:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_WL.value)
         if bl_ip is not None:
-            bl_ip.blacklisted = True
+            bl_ip.blacklisted = blacklisted
             bl_ip.active = True
+            if not blacklisted:
+                bl_ip.count = 0
+                bl_ip.active = False
             bl_ip.save()
         else:
             bl_ip = Fail2banIps(ip=ip,
-                                active=False,
+                                active=blacklisted,
                                 jail=jail_name,
                                 host=get_reverse_name(),
                                 count=0,
@@ -244,6 +247,11 @@ class Fail2banDB:
         return Fail2banIps().find_by_blacklisted_and_jail(
             jail_name) is not None
 
+    def enable_blacklist(self, jail_name: str, max_count: int):
+        jail = Fail2banJail().find_by_name(jail_name)
+        jail.max_count = max_count
+        jail.save()
+
     def disable_blacklist(self, jail_name: str):
         jail = Fail2banJail().find_by_name(jail_name)
         jail.max_count = -1
@@ -251,6 +259,11 @@ class Fail2banDB:
         ips = Fail2banIps().find_by_blacklisted_and_jail(jail_name, True)
         for ip in ips:
             ip.delete()
+
+    def set_send_mail(self, jail_name: str, send_mail: bool) -> None:
+        jail = Fail2banJail().find_by_name(jail_name)
+        jail.send_mail_bl = send_mail
+        jail.save()
 
     def delete_all_rows_jail(self, jail_name: str):
         return Fail2banIps().reset_jail_ips(jail_name)

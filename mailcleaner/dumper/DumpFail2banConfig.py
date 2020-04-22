@@ -3,7 +3,10 @@ import logging
 
 from mailcleaner.db.models import Fail2banJail
 from mailcleaner.db.models import Fail2banIps
+from mailcleaner.db.models.Fail2banConfig import Fail2banConfig
+from mailcleaner.db.models.Registration import Registration
 from mailcleaner.dumper.MailCleanerBaseDump import MailCleanerBaseDump
+from mailcleaner.config import MailCleanerConfig
 
 
 class DumpFail2banConfig(MailCleanerBaseDump):
@@ -53,6 +56,32 @@ class DumpFail2banConfig(MailCleanerBaseDump):
         if mc_jail != None:
             self.__dump_jail(jail)
 
+    def dump_sendmail_common(self):
+        logging.info("Start dumping of sendmail-common conf ..")
+        gen_conf = Fail2banConfig().first()
+        self.dump_template(
+            template_config_src_file=
+            'etc/fail2ban/action.d/sendmail-common.conf_template',
+            destination_config_src_file=
+            'etc/fail2ban/action.d/sendmail-common.conf',
+            config_datas={
+                'src_name': gen_conf.src_name,
+                'src_email': gen_conf.src_email,
+                'dest_email': gen_conf.dest_email,
+            })
+
+    def check_rbl_send(self) -> bool:
+        if MailCleanerConfig.get_instance().get_value("REGISTERED") == 1:
+            return True
+        elif MailCleanerConfig.get_instance().get_value("REGISTERED") == 2:
+            reg = Registration().first()
+            if reg.accept_send_statistics:
+                return True
+            else:
+                return False
+        else:
+            return False
+
     def __dump_jail(self, jail: str) -> None:
         """
         Dump SSH jail configuration.
@@ -64,9 +93,20 @@ class DumpFail2banConfig(MailCleanerBaseDump):
         list_whitelisted = []
         for whitelisted_ip in raw_whitelisted_ip:
             list_whitelisted.append(whitelisted_ip.ip)
+        send_mail = ""
+        if mc_jail.send_mail_bl != False:
+            send_mail = "sendmail"
+        send_rbl = ""
+        enabled = mc_jail.enabled
+        if self.check_rbl_send():
+            if enabled:
+                send_rbl = "mc-send-rbl"
+            else:
+                enabled = True
+                banaction = "mc-send-rbl"
         varrr = {
             'name': mc_jail.name,
-            'enabled': mc_jail.enabled,
+            'enabled': enabled,
             'maxretry': mc_jail.maxretry,
             'findtime': mc_jail.findtime,
             'bantime': mc_jail.bantime,
@@ -75,6 +115,7 @@ class DumpFail2banConfig(MailCleanerBaseDump):
             'whitelist': list_whitelisted,
             'banaction': mc_jail.banaction,
             'logpath': mc_jail.logpath,
+            "send_rbl": send_rbl
         }
         if mc_jail is not None:
             self.dump_template(
@@ -91,5 +132,6 @@ class DumpFail2banConfig(MailCleanerBaseDump):
                 config_datas={
                     "name": mc_jail.name + "-bl",
                     "enabled": mc_jail.enabled,
-                    "port": mc_jail.port
+                    "port": mc_jail.port,
+                    "send_mail": send_mail,
                 })
