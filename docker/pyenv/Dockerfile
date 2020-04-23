@@ -14,24 +14,20 @@ RUN tar xvf openssl-1.1.1g.tar.gz
 RUN cd openssl-1.1.1g \
   && ./config --prefix=$HOME/lib/openssl --openssldir=$HOME/lib/openssl no-ssl2 \
   && make \
-  && make install
-
-RUN rm -rf openssl-1.1.1g openssl-1.1.1g.tar.gz
+  && make install \
+  && rm -rf openssl-1.1.1g openssl-1.1.1g.tar.gz
 
 RUN git clone https://github.com/pyenv/pyenv.git ~/.pyenv
 
 ENV HOME="/root"
-ENV LD_LIBRARY_PATH="${HOME}/lib/openssl/lib"
-ENV LDFLAGS="-L${HOME}/lib/openssl/lib -Wl,-rpath,${HOME}/lib/openssl/lib"
 ENV PYENV_ROOT="${HOME}/.pyenv"
 ENV PATH="${PYENV_ROOT}/bin:${HOME}/lib/openssl/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${HOME}/lib/openssl/lib"
+ENV LDFLAGS="-L${HOME}/lib/openssl/lib -Wl,-rpath,${HOME}/lib/openssl/lib"
+ENV CFLAGS="-I$HOME/lib/openssl/include"
+ENV SSH="$HOME/lib/openssl"
 
-RUN CFLAGS="-I$HOME/lib/openssl/include" \
-  LDFLAGS="-L$HOME/lib/openssl/lib" \
-  SSH="$HOME/lib/openssl" \
-  pyenv install 3.7.7
-
-RUN pyenv local 3.7.7
+RUN pyenv install 3.7.7 && pyenv local 3.7.7
 
 COPY ./entrypoint.sh /
 RUN chmod +x /entrypoint.sh
