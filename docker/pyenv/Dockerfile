@@ -29,9 +29,9 @@ ENV PATH="${PYENV_ROOT}/bin:${HOME}/lib/openssl/bin:${PATH}"
 RUN CFLAGS="-I$HOME/lib/openssl/include" \
   LDFLAGS="-L$HOME/lib/openssl/lib" \
   SSH="$HOME/lib/openssl" \
-  pyenv install 3.8.2
+  pyenv install 3.7.7
 
-RUN pyenv local 3.8.2
+RUN pyenv local 3.7.7
 
 COPY ./entrypoint.sh /
 RUN chmod +x /entrypoint.sh
