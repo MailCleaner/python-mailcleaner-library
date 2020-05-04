@@ -6,14 +6,16 @@ An example for compiling Python 3.8.x with a Debian Jessie and pyenv.
 
 Build:
 
-    $ docker build -t python-mailcleaner-pyenv .
+    $ docker build \
+    --build-arg PYTHON_VERSION=$(cat ../../.python-version) \
+    -t mailcleaner-pyenv .
 
 Run:
 
-    $ docker run -it --rm --name python-mailcleaner-pyenv \
-    python-mailcleaner-pyenv python
+    $ docker run -it --rm --name mailcleaner-pyenv \
+    mailcleaner-pyenv python
 
 Check Openssl version:
  
-    $ docker run -it --rm --name python-mailcleaner-pyenv \
-    python-mailcleaner-pyenv python -c "import ssl; print(ssl.OPENSSL_VERSION)"
+    $ docker run -it --rm --name mailcleaner-pyenv \
+    mailcleaner-pyenv python -c "import ssl; print(ssl.OPENSSL_VERSION)"
