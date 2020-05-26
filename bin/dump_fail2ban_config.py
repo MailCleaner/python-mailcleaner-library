@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import click
 from mailcleaner.dumper import DumpFail2banConfig
 from click_default_group import DefaultGroup

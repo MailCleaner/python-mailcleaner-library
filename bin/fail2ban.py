@@ -1,12 +1,13 @@
+#!/usr/bin/env python
 import click
 import os
 import socket
 import re
-#from mailcleaner.fail2ban.fail2ban_service import Fail2banService
+from mailcleaner.fail2ban.fail2ban_service import Fail2banService
 import ipaddress
 import netifaces as ni
-#from mailcleaner.network import *
-#from mailcleaner.db.models import Slave
+from mailcleaner.network import *
+from mailcleaner.db.models import Slave
 from email.utils import parseaddr
 from sys import exit
 
@@ -225,7 +226,7 @@ def gen_disable_bl():
     f2b.disable_all_blacklist()
 
 @general.command('enable-bl', short_help="Enable blacklist for all jails")
-@click.option('-v', '--value', default="3", help="Max number of ban before blacklist", show_default=True)
+@click.option('-v', '--value', default=3, help="Max number of ban before blacklist", show_default=True)
 def gen_enable_bl(value: int):
     """
         Enable all blacklist jails<
@@ -285,8 +286,8 @@ def bl_disable(jail):
 @blacklist.command(
     'enable', short_help='Enable blacklist for specified jail')
 @click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
-@click.option('-v', '--value', default="3",help="Max number of ban before blacklist", show_default=True)
-def bl_enable(jail):
+@click.option('-v', '--value', default=3,help="Max number of ban before blacklist", show_default=True)
+def bl_enable(jail, value):
     """
         Enable blacklist for specified jail
         
@@ -296,7 +297,7 @@ def bl_enable(jail):
                 Fail2ban needs to be restarted
     """
     f2b = Fail2banService()
-    f2b.enable_blacklist(jail)
+    f2b.enable_blacklist(jail, value)
 
 
 @blacklist.command(

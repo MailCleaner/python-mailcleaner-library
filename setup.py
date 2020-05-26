@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='mailcleaner-library',
-    version='1.0',
+    version='1.0.2',
     description='MailCleaner Python Library',
     url='https://github.com/MailCleaner/python-mailcleaner-library',
     author='Mentor Reka',
@@ -18,8 +18,12 @@ setup(
         'netifaces>=0.10.9,<=0.10.9',
         'invoke>=1.4.1,<=1.4.1',
         'click>=7.1.1,<=7.1.1',
-        'requests>=2.23.0,<=2.23.0'
+        'requests>=2.23.0,<=2.23.0',
+        'click_default_group>=1.2.2,<=1.2.2',
     ],
-    scripts=['bin/fail2ban.py'],
+    scripts=[
+        'bin/fail2ban.py',
+        'bin/dump_fail2ban_config.py'
+    ],
     python_requires='>=3.7.7',
     zip_safe=False)
