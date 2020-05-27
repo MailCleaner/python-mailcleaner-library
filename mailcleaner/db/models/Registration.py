@@ -7,7 +7,7 @@ from . import BaseModel
 
 class Registration(base, BaseModel):
     """
-    PreRBLs table
+    Registration table
     """
     __tablename__ = 'registration'
 

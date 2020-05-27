@@ -239,17 +239,17 @@ class Fail2banService:
 
     def disable_jail(self, jail_name: str) -> None:
         self.__mcLogger.debug("Disable jail {0}".format(jail_name))
-        if MailCleanerConfig.get_instance().get_value("ISMASTER") == "Y":
-            Fail2banDB().set_jail_inactive(jail_name)
-            Fail2banDB().delete_all_rows_jail(jail_name)
-        # TODO: Add verification if EE or COMMU W/ Sending do change action else disable
+        Fail2banDB().set_jail_inactive(jail_name)
+        self.disable_blacklist(jail_name)
+        Fail2banDB().delete_all_rows_jail(jail_name)
         self.__safe_run("fail2ban-client stop {0}".format(jail_name))
+        self.enable_jail(jail_name)
 
     def disable_all_jails(self) -> None:
         jails = Fail2banJail().get_jails()
         for jail in jails:
             if jail.enabled == True:
-                self.disable_jail(jail)
+                self.disable_jail(jail[0])
 
     def enable_jail(self, jail_name: str) -> None:
         self.__mcLogger.debug("Enable jail {0}".format(jail_name))
@@ -263,8 +263,7 @@ class Fail2banService:
     def enable_all_jail(self) -> None:
         jails = Fail2banJail().get_jails()
         for jail in jails:
-            if jail.enabled == False:
-                self.enable_jail(jail)
+            self.enable_jail(jail[0])
 
     def change_config(self, jail_name: str, option: str, value: int) -> None:
         self.__safe_run("fail2ban-client set {0:s} {1:s} {2:d}".format(
@@ -274,11 +273,13 @@ class Fail2banService:
 
     def enable_blacklist(self, jail_name: str, max_count: int) -> None:
         self.fail2banDB.enable_blacklist(jail_name, max_count)
+        DumpFail2banConfig().dump_jail(jail_name)
+        self.__safe_run("fail2ban-client -c {0}/etc/fail2ban/ reload {1}-bl".format(MailCleanerConfig.get_instance().get_value("SRCDIR"), jail_name))
 
     def enable_all_blacklist(self, max_count: int) -> None:
         jails = Fail2banJail().get_jails()
         for jail in jails:
-            self.enable_blacklist(jail, max_count)
+            self.enable_blacklist(jail[0], max_count)
 
     def disable_blacklist(self, jail_name) -> None:
         self.fail2banDB.disable_blacklist(jail_name)
@@ -288,7 +289,7 @@ class Fail2banService:
     def disable_all_blacklist(self) -> None:
         jails = Fail2banJail().get_jails()
         for jail in jails:
-            self.disable_blacklist(jail)
+            self.disable_blacklist(jail[0])
 
     def change_general_config(src_name: str = "",
                               src_email: str = "",

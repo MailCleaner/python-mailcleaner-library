@@ -76,12 +76,14 @@ engines = {
                      DBConfig.DB_MASTER_PWD.value + "@" +
                      DBConfig.DB_MASTER_IP.value + ":" +
                      str(DBPort.MASTER.value) + "/mc_community",
-                     logging_name='m_master'),
+                     logging_name='m_community'),
 }
 
 
 class RoutingSession(orm.Session):
     def get_bind(self, mapper=None, clause=None):
+        if self._name != None:
+            return engines[self._name]
         if self._flushing:
             return engines['m_master']
         else:
