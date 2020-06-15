@@ -6,7 +6,7 @@ from . import BaseModel
 
 
 class Fail2banConfig(base, BaseModel):
-    __tablename__ = 'fail2ban_config'
+    __tablename__ = 'fail2ban_conf'
 
     id = Column(Integer, primary_key=True)
     src_email = Column(String(150), nullable=False)

@@ -21,14 +21,12 @@ def cli():
 @cli.command(short_help='Ban an IP')
 @click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
 @click.option('-i', '--ip', required=True, help='IP to ban')
-@click.option(
-    '--f2b-call/--no-f2b-call',
-    default=False,
-    help="Call Fail2ban, default False")
-@click.option(
-    '--db-insert/--no-db-insert',
-    default=True,
-    help="Insert into DB, default True")
+@click.option('--f2b-call/--no-f2b-call',
+              default=False,
+              help="Call Fail2ban, default False")
+@click.option('--db-insert/--no-db-insert',
+              default=True,
+              help="Insert into DB, default True")
 def ban(jail, ip, db_insert, f2b_call):
     """
     Ban an IP
@@ -54,8 +52,9 @@ def ban(jail, ip, db_insert, f2b_call):
                 print("You can't ban the network of one of your slave")
                 exit(1)
         if int(ip.split("/")[1]) <= 24:
-            if not click.confirm("Are you sure that you want to ban {0:,} ips".
-                                 format(ip_address.num_addresses)):
+            if not click.confirm(
+                    "Are you sure that you want to ban {0:,} ips".format(
+                        ip_address.num_addresses)):
                 exit(0)
     else:
         ip_address = None
@@ -78,21 +77,19 @@ def ban(jail, ip, db_insert, f2b_call):
                 print("You can't ban the ip of one of your slave")
                 exit(1)
 
-    cur = Fail2banService(jail_name=jail, ip=ip_address)
+    cur = Fail2banService(jail_name=jail, ip=str(ip_address))
     cur.ban(f2b_call=f2b_call, db_insert=db_insert)
 
 
 @cli.command(short_help='Unban specified IP in the jail')
 @click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
 @click.option('-i', '--ip', required=True, help='IP to unban')
-@click.option(
-    '--f2b-call/--no-f2b-call',
-    default=False,
-    help="Call Fail2ban, default False")
-@click.option(
-    '--db-insert/--no-db-insert',
-    default=True,
-    help="Insert into DB, default True")
+@click.option('--f2b-call/--no-f2b-call',
+              default=False,
+              help="Call Fail2ban, default False")
+@click.option('--db-insert/--no-db-insert',
+              default=True,
+              help="Insert into DB, default True")
 def unban(jail, ip, db_insert, f2b_call):
     """
     Unban specified IP in the jail
@@ -104,7 +101,7 @@ def unban(jail, ip, db_insert, f2b_call):
 @click.group()
 def internal():
     """
-        Blacklist group for click commands
+        Internal group for click commands
     """
     pass
 
@@ -120,6 +117,7 @@ def reload_fw(hidden):
     f2b = Fail2banService()
     if hidden == 'firewall':
         f2b.reload_fw()
+
 
 @internal.command(short_help='Ban in iptable all rows present in DB')
 def fetch_db():
@@ -140,6 +138,7 @@ def cron_job():
     f2b = Fail2banService()
     f2b.treat_cron()
 
+
 @internal.command(short_help="Command used to send ip to RBL")
 @click.argument('jail')
 @click.argument('ip')
@@ -147,12 +146,14 @@ def send_rbl(jail, ip):
     f2b = Fail2banService()
     f2b.notify_rbl(jail, ip)
 
+
 @click.group()
 def mail():
     """
     Mail configuration of Fail2Ban
     """
     pass
+
 
 @mail.command('dest', short_help="Configure the destination email address")
 @click.option('-e', '--email', help="Destination email address")
@@ -164,8 +165,13 @@ def mail_dest(email: str):
         f2b = Fail2banService()
         f2b.change_dest_email(email)
 
+
 @mail.command('src', short_help="Configure the source email address")
-@click.option('-e', '--email', default="fail2ban@yourservername",help="Source email address", show_default=True)
+@click.option('-e',
+              '--email',
+              default="fail2ban@yourservername",
+              help="Source email address",
+              show_default=True)
 def mail_src(email: str):
     """
         Change the source email address of Fail2Ban
@@ -174,8 +180,14 @@ def mail_src(email: str):
         f2b = Fail2banService()
         f2b.change_src_email(email)
 
-@mail.command('name', short_help="Configure the display name of the email address")
-@click.option('-n', '--name', default="[MailCleaner] Fail2Ban",help="Display name", show_default=True)
+
+@mail.command('name',
+              short_help="Configure the display name of the email address")
+@click.option('-n',
+              '--name',
+              default="[MailCleaner] Fail2Ban",
+              help="Display name",
+              show_default=True)
 def mail_name(name: str):
     """
         Change the display name of the source email address of Fail2Ban
@@ -184,7 +196,8 @@ def mail_name(name: str):
     f2b.change_src_name(name)
 
 
-@mail.command('modify', short_help="Modify the send mail action for all blacklist jail")
+@mail.command('modify',
+              short_help="Modify the send mail action for all blacklist jail")
 @click.option('--send/--no-send', default=True)
 def mail_modify(send):
     """
@@ -201,6 +214,7 @@ def general():
     """
     pass
 
+
 @general.command('enable', short_help="Enable all jails")
 def gen_enable():
     """
@@ -208,6 +222,7 @@ def gen_enable():
     """
     f2b = Fail2banService()
     f2b.enable_all_jail()
+
 
 @general.command('disable', short_help="Enable all jails")
 def gen_disable():
@@ -217,6 +232,7 @@ def gen_disable():
     f2b = Fail2banService()
     f2b.disable_all_jails()
 
+
 @general.command('disable-bl', short_help="Disable blacklist for all jails")
 def gen_disable_bl():
     """
@@ -225,15 +241,21 @@ def gen_disable_bl():
     f2b = Fail2banService()
     f2b.disable_all_blacklist()
 
+
 @general.command('enable-bl', short_help="Enable blacklist for all jails")
-@click.option('-v', '--value', default=3, help="Max number of ban before blacklist", show_default=True)
+@click.option('-v',
+              '--value',
+              default=3,
+              help="Max number of ban before blacklist",
+              show_default=True)
 def gen_enable_bl(value: int):
     """
         Enable all blacklist jails<
     """
-    if value > 1: 
+    if value > 1:
         f2b = Fail2banService()
         f2b.enable_all_blacklist(value)
+
 
 @click.group()
 def whitelist():
@@ -241,6 +263,7 @@ def whitelist():
         Whitelist group for click commands
     """
     pass
+
 
 @whitelist.command('add')
 @click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
@@ -271,8 +294,8 @@ def blacklist():
     """
 
 
-@blacklist.command(
-    'disable', short_help='Disable blacklist for specified jail')
+@blacklist.command('disable',
+                   short_help='Disable blacklist for specified jail')
 @click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
 def bl_disable(jail):
     """
@@ -283,10 +306,14 @@ def bl_disable(jail):
     f2b = Fail2banService()
     f2b.disable_blacklist(jail)
 
-@blacklist.command(
-    'enable', short_help='Enable blacklist for specified jail')
+
+@blacklist.command('enable', short_help='Enable blacklist for specified jail')
 @click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
-@click.option('-v', '--value', default=3,help="Max number of ban before blacklist", show_default=True)
+@click.option('-v',
+              '--value',
+              default=3,
+              help="Max number of ban before blacklist",
+              show_default=True)
 def bl_enable(jail, value):
     """
         Enable blacklist for specified jail
@@ -300,8 +327,8 @@ def bl_enable(jail, value):
     f2b.enable_blacklist(jail, value)
 
 
-@blacklist.command(
-    'add', short_help='Add IP in the blacklist for specified jail')
+@blacklist.command('add',
+                   short_help='Add IP in the blacklist for specified jail')
 @click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
 @click.option('-i', '--ip', required=True, help='IP to blacklist')
 def bl_add(jail, ip):
@@ -309,13 +336,12 @@ def bl_add(jail, ip):
         Add IP in the blacklist for specified jail
         Note : Don't add "-bl" for the jail name 
     """
-    print()
     f2b = Fail2banService()
-    f2b.blacklist(jail_name = jail, ip = ip, blacklisted = True)
+    f2b.blacklist(jail_name=jail, ip=ip, blacklisted=True)
 
 
-@blacklist.command(
-    'remove', short_help='Remove IP in the blacklist for specified jail')
+@blacklist.command('remove',
+                   short_help='Remove IP in the blacklist for specified jail')
 @click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
 @click.option('-i', '--ip', required=True, help='IP to unblacklist')
 def bl_remove(jail, ip):
@@ -323,7 +349,7 @@ def bl_remove(jail, ip):
         Remove IP in the blacklist for specified jail
     """
     f2b = Fail2banService()
-    f2b.blacklist(jail_name = jail, ip = ip, blacklisted = False)
+    f2b.blacklist(jail_name=jail, ip=ip, blacklisted=False)
 
 
 @click.group()
@@ -346,7 +372,9 @@ def enable_jail(jail):
     f2b.enable_jail(jail)
 
 
-@jail.command('modify-mail', short_help='Change configuration of the corresponding jail for send mail')
+@jail.command(
+    'modify-mail',
+    short_help='Change configuration of the corresponding jail for send mail')
 @click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
 @click.option('--send/--no-send', default=True)
 def modify_mail(jail, send):
@@ -356,19 +384,18 @@ def modify_mail(jail, send):
     f2b = Fail2banService()
     f2b.modify_send_mail(jail, send)
 
+
 @jail.command('change', short_help='Change configuration of specified jail.')
 @click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
-@click.option(
-    '--option',
-    type=click.Choice(
-        ['findtime', 'bantime', 'maxretry'], case_sensitive=False),
-    required=True)
-@click.option(
-    '-v',
-    '--value',
-    required=True,
-    help='Time in second or number of max retry',
-    type=int)
+@click.option('--option',
+              type=click.Choice(['findtime', 'bantime', 'maxretry'],
+                                case_sensitive=False),
+              required=True)
+@click.option('-v',
+              '--value',
+              required=True,
+              help='Time in second or number of max retry',
+              type=int)
 def change_config(jail, option, value):
     """
         For findtime and bantime, the value is in second \n
@@ -376,6 +403,14 @@ def change_config(jail, option, value):
     """
     f2b = Fail2banService()
     f2b.change_config(jail, option, value)
+
+
+@jail.command('reload', short_help="Reload the corresponding jail")
+@click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
+def reload_jail(jail):
+    f2b = Fail2banService()
+    f2b.reload_jail(jail)
+    print()
 
 
 @jail.command('disable', short_help='Disable the corresponding jail')
@@ -387,6 +422,12 @@ def disable_jail(jail):
     """
     f2b = Fail2banService()
     f2b.disable_jail(jail)
+
+
+@jail.command('list', short_help='List IPs banned in DB')
+@click.option('-j', '--jail', required=True, help='Fail2Ban jail name')
+def ip_list(jail):
+    print()
 
 
 cli.add_command(whitelist)
