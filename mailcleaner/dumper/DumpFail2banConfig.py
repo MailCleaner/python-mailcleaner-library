@@ -21,6 +21,7 @@ class DumpFail2banConfig(MailCleanerBaseDump):
         self.dump_ssh_jail_conf()
         self.dump_exim_jail_conf()
         self.dump_webauth_jail_conf()
+        self.dump_sendmail_common()
 
     def dump_all_from_mysql(self) -> None:
         """
@@ -96,17 +97,18 @@ class DumpFail2banConfig(MailCleanerBaseDump):
             for whitelisted_ip in raw_whitelisted_ip:
                 list_whitelisted.append(whitelisted_ip.ip)
             send_mail = ""
-            if mc_jail.send_mail != False:
-                send_mail = "sendmail"
+
             send_rbl = ""
             enabled = mc_jail.enabled
-            banaction = mc_jail.banaction
+            banaction = "{}[name={}]".format(mc_jail.banaction, mc_jail.name)
             if self.check_rbl_send():
                 if enabled:
-                    send_rbl = "mc-send-rbl"
+                    if mc_jail.send_mail != False:
+                        send_mail = "sendmail[name={}]".format(mc_jail.name)
+                    send_rbl = "mc-send-rbl[name={}]".format(mc_jail.name)
                 else:
                     enabled = True
-                    banaction = "mc-send-rbl"
+                    banaction = "mc-send-rbl[name={}]".format(mc_jail.name)
             varrr = {
                 'name': mc_jail.name,
                 'enabled': enabled,
