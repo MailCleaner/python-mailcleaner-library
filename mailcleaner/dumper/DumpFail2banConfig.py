@@ -90,6 +90,7 @@ class DumpFail2banConfig(MailCleanerBaseDump):
         """
         logging.info("Start dumping of {} jail conf ..".format(jail))
         mc_jail = Fail2banJail.find_by_name(name=jail)
+        gen_conf = Fail2banConfig().first()
         if mc_jail is not None:
             #-- Jail Dump --#
             raw_whitelisted_ip = Fail2banIps.find_by_whitelisted_and_jail(jail)
@@ -100,15 +101,18 @@ class DumpFail2banConfig(MailCleanerBaseDump):
 
             send_rbl = ""
             enabled = mc_jail.enabled
-            banaction = "{}[name={}]".format(mc_jail.banaction, mc_jail.name)
+
+            options = "[name={}, port='{}', chain='{}']".format(
+                mc_jail.name, mc_jail.port, gen_conf.chain)
+            banaction = "{}{}".format(mc_jail.banaction, options)
             if self.check_rbl_send():
                 if enabled:
                     if mc_jail.send_mail != False:
-                        send_mail = "sendmail[name={}]".format(mc_jail.name)
-                    send_rbl = "mc-send-rbl[name={}]".format(mc_jail.name)
+                        send_mail = "sendmail{}".format(options)
+                    send_rbl = "mc-send-rbl{}".format(options)
                 else:
                     enabled = True
-                    banaction = "mc-send-rbl[name={}]".format(mc_jail.name)
+                    banaction = "mc-send-rbl{}".format(options)
             varrr = {
                 'name': mc_jail.name,
                 'enabled': enabled,
@@ -136,6 +140,7 @@ class DumpFail2banConfig(MailCleanerBaseDump):
                 send_mail_bl = "sendmail"
             if mc_jail.max_count != -1:
                 enabled = True
+            gen_conf = Fail2banConfig().first()
             self.dump_template(
                 template_config_src_file=
                 'etc/fail2ban/jail.d/default-bl.local_template',
@@ -146,4 +151,6 @@ class DumpFail2banConfig(MailCleanerBaseDump):
                     "enabled": enabled,
                     "port": mc_jail.port,
                     "send_mail": send_mail_bl,
+                    "options": options,
+                    "chain": gen_conf.chain,
                 })

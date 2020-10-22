@@ -78,7 +78,7 @@ def ban(jail, ip, db_insert, f2b_call):
                 exit(1)
 
     cur = Fail2banService(jail_name=jail, ip=str(ip_address))
-    cur.ban(f2b_call=f2b_call, db_insert=db_insert)
+    test = cur.ban(f2b_call=f2b_call, db_insert=db_insert)
 
 
 @cli.command(short_help='Unban specified IP in the jail')
@@ -221,7 +221,12 @@ def gen_enable():
         Enable all jails
     """
     f2b = Fail2banService()
-    f2b.enable_all_jail()
+    ret = f2b.enable_all_jail()
+    for key, val in ret.items():
+        if val == 0:
+            print("Jail => {} has been correctly enabled".format(key))
+        else:
+            print("Jail => {} hasn't been correctly enabled".format(key))
 
 
 @general.command('disable', short_help="Enable all jails")
