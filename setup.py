@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 setup(name='mailcleaner-library',
-      version='1.0.3',
+      version='1.0.4',
       description='MailCleaner Python Library',
       url='https://github.com/MailCleaner/python-mailcleaner-library',
       author='Mentor Reka',

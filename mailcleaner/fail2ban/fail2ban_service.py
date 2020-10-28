@@ -2,6 +2,7 @@
 import subprocess, sys, os
 import logging
 import requests
+import json
 from email.utils import parseaddr
 try:
     from mailcleaner.config import MailCleanerConfig
@@ -64,7 +65,7 @@ class Fail2banService:
             ip: str = None,
             jail_name: str = None,
             db_insert: bool = True,
-            f2b_call: bool = False) -> None:
+            f2b_call: bool = False) -> dict:
         """ 
             Ban an IP.
             Blacklist the IP, if it needs to
@@ -74,29 +75,59 @@ class Fail2banService:
             db_insert {bool} -- Needs to insert to DB,
             f2b_call {bool} -- Needs to call F2B):
         """
+        ret = {"code": 200, "response": ""}
         if ip == None:
             ip = self.ip
         if jail_name == None:
             jail_name = self.jail_name
 
-        if f2b_call and self.__safe_run(
-                "fail2ban-client status {0} |grep {1}".format(jail_name, ip),
-                False,
-                hide=True).return_code:
-            self.__safe_run("fail2ban-client set {0} banip {1}".format(
-                jail_name, ip))
-        else:
-            print("{0} is already banned in {1}".format(ip, jail_name))
+        if f2b_call:
+
+            ret_f2b = self.__safe_run("fail2ban-client status",
+                                      hide=True,
+                                      raise_failures=False).return_code
+            if ret_f2b == 0:
+                stat_ret = self.__safe_run(
+                    "fail2ban-client status {0} |grep {1}".format(
+                        jail_name, ip),
+                    hide=True,
+                    raise_failures=False).return_code
+                if stat_ret == 1:
+                    self.__safe_run("fail2ban-client set {0} banip {1}".format(
+                        jail_name, ip),
+                                    hide=True)
+                    ret["response"] = "Fail2Ban called properly"
+                    return ret
+                else:
+                    ret["code"] = 409
+                    ret["response"] = "{0} is already banned in {1}".format(
+                        ip, jail_name)
+                    return ret
+            else:
+                ret["code"] = 503
+                ret["response"] = "Unable to contact Fail2Ban. Is it running?"
+                return ret
+
         self.__mcLogger.info("Banning=>{0} inside jail=>{1}".format(
             ip, jail_name))
-
         if db_insert:
-            ret = self.fail2banDB.insert_row(ip, jail_name)
-            if ret == InsertError.BLACKLISTED.value:
+            ret_db = self.fail2banDB.insert_row(ip, jail_name)
+            if ret_db == InsertError.BLACKLISTED.value:
                 self.__mcLogger.warn("Blacklisting {0} from {1}".format(
                     ip, jail_name))
                 self.__safe_run("fail2ban-client set {0}-bl banip {1}".format(
-                    jail_name, ip))
+                    jail_name, ip),
+                                hide=True)
+                ret["response"] = "Blacklisting {0} from {1}".format(
+                    ip, jail_name)
+            elif ret_db == InsertError.CREATED.value:
+                ret["response"] = "{0}:{1} correctly inserted in DB".format(
+                    ip, jail_name)
+            elif ret_db == InsertError.UNCHANGED.value:
+                ret["code"] = 409
+                ret["response"] = "{0}:{1} is already active in DB".format(
+                    ip, jail_name)
+        return ret
 
     def blacklist(self,
                   ip: str,
@@ -107,18 +138,22 @@ class Fail2banService:
         if self.__safe_run(
                 "fail2ban-client status {0}-bl >> /dev/null 2>&1".format(
                     jail_name),
-                raise_failures=False).return_code == 0:
+                raise_failures=False,
+                hide=True).return_code == 0:
             if blacklisted:
                 self.__safe_run("fail2ban-client set {0}-bl banip {1}".format(
-                    jail_name, ip))
+                    jail_name, ip),
+                                hide=True)
             else:
                 self.__safe_run(
                     "fail2ban-client set {0}-bl unbanip {1}".format(
-                        jail_name, ip))
+                        jail_name, ip),
+                    hide=True)
         else:
             self.__mcLogger.error(
                 "[{} - {}]: Trying to blacklist an IP. BL not activated".
-                format(jail_name, ip))
+                format(jail_name, ip),
+                hide=True)
 
     def unban(self,
               ip: str = None,
@@ -213,20 +248,21 @@ class Fail2banService:
 
     def reload_fw(self) -> None:
         self.__mcLogger.debug("Reload Firewall called")
+        conf = Fail2banConfig().first()
         jails = Fail2banJail().all()
         for jail in jails:
             self.__safe_run("iptables -N fail2ban-{0}".format(jail.name))
             self.__safe_run("iptables -A fail2ban-{0} -j RETURN".format(
                 jail.name))
             self.__safe_run(
-                "iptables -I INPUT -p tcp -m multiport --dports {0} -j fail2ban-{1}"
-                .format(jail.port, jail.name))
+                "iptables -I {0} -p tcp -m multiport --dports {1} -j fail2ban-{2}"
+                .format(conf.chain, jail.port, jail.name))
             self.__safe_run("iptables -N fail2ban-{0}-bl".format(jail.name))
             self.__safe_run("iptables -A fail2ban-{0}-bl -j RETURN".format(
                 jail.name))
             self.__safe_run(
-                "iptables -I INPUT -p tcp -m multiport --dports {0} -j fail2ban-{1}-bl"
-                .format(jail.port, jail.name))
+                "iptables -I {0} -p tcp -m multiport --dports {1} -j fail2ban-{2}-bl"
+                .format(conf.chain, jail.port, jail.name))
             ips = Fail2banIps.get_all_active_by_jail(jail.name)
             for ip in ips:
                 self.__safe_run(
@@ -246,7 +282,7 @@ class Fail2banService:
         self.__whitelist_from_mysql()
         self.__blacklist_from_mysql()
 
-    def disable_jail(self, jail_name: str) -> None:
+    def disable_jail(self, jail_name: str) -> bool:
         self.__mcLogger.debug("Disable jail {0}".format(jail_name))
         Fail2banDB().set_jail_inactive(jail_name)
         self.disable_blacklist(jail_name)
@@ -256,33 +292,37 @@ class Fail2banService:
                 "fail2ban-client status {0} >> /dev/null 2>&1".format(
                     jail_name),
                 raise_failures=False).return_code == 0:
-            self.__safe_run("fail2ban-client stop {0}".format(jail_name),
-                            raise_failures=False)
+            self.__safe_run(
+                "fail2ban-client stop {0} >> /dev/null 2>&1".format(jail_name),
+                raise_failures=False)
         self.__safe_run(
-            "fail2ban-client -c {0}/etc/fail2ban/ reload {1}".format(
-                MailCleanerConfig.get_instance().get_value("SRCDIR"),
-                jail_name))
+            "fail2ban-client -c {0}/etc/fail2ban/ reload {1} >> /dev/null 2>&1"
+            .format(MailCleanerConfig.get_instance().get_value("SRCDIR"),
+                    jail_name))
 
-    def disable_all_jails(self) -> None:
+    def disable_all_jails(self) -> dict:
         jails = Fail2banJail().get_jails()
         for jail in jails:
             db_jail = Fail2banJail().find_by_name(jail[0])
             if db_jail.enabled == True:
                 self.disable_jail(jail[0])
 
-    def enable_jail(self, jail_name: str) -> None:
+    def enable_jail(self, jail_name: str) -> bool:
         self.__mcLogger.debug("Enable jail {0}".format(jail_name))
         Fail2banDB().set_jail_active(jail_name)
         DumpFail2banConfig().dump_jail(jail_name)
-        self.__safe_run(
+        command = self.__safe_run(
             "fail2ban-client -c {0}/etc/fail2ban/ reload {1}".format(
                 MailCleanerConfig.get_instance().get_value("SRCDIR"),
                 jail_name))
+        return command.return_code
 
-    def enable_all_jail(self) -> None:
+    def enable_all_jail(self) -> dict:
         jails = Fail2banJail().get_jails()
+        ret = dict()
         for jail in jails:
-            self.enable_jail(jail[0])
+            ret[jail[0]] = self.enable_jail(jail[0])
+        return ret
 
     def change_config(self, jail_name: str, option: str, value: int) -> None:
         self.fail2banDB.set_jail_config(jail_name, option, value)
@@ -299,33 +339,41 @@ class Fail2banService:
                     MailCleanerConfig.get_instance().get_value("SRCDIR"),
                     jail_name))
 
-    def enable_blacklist(self, jail_name: str, max_count: int) -> None:
+    def enable_blacklist(self, jail_name: str, max_count: int) -> bool:
         self.fail2banDB.enable_blacklist(jail_name, max_count)
         DumpFail2banConfig().dump_jail(jail_name)
-        self.__safe_run(
+        command = self.__safe_run(
             "fail2ban-client -c {0}/etc/fail2ban/ reload {1}-bl".format(
                 MailCleanerConfig.get_instance().get_value("SRCDIR"),
                 jail_name))
+        return command.return_code
 
-    def enable_all_blacklist(self, max_count: int) -> None:
+    def enable_all_blacklist(self, max_count: int) -> dict:
         jails = Fail2banJail().get_jails()
+        ret = dict()
         for jail in jails:
-            self.enable_blacklist(jail[0], max_count)
+            ret[jail[0]] = self.enable_blacklist(jail[0], max_count)
+        return ret
 
-    def disable_blacklist(self, jail_name) -> None:
+    def disable_blacklist(self, jail_name) -> bool:
         self.fail2banDB.disable_blacklist(jail_name)
-        self.__safe_run("fail2ban-client stop {0:s}-bl".format(jail_name),
-                        raise_failures=False)
+        command = self.__safe_run(
+            "fail2ban-client stop {0:s}-bl >> /dev/null 2>&1".format(
+                jail_name),
+            raise_failures=False)
+        return command.return_code
 
-    def disable_all_blacklist(self) -> None:
+    def disable_all_blacklist(self) -> dict:
         jails = Fail2banJail().get_jails()
+        ret = dict()
         for jail in jails:
-            self.disable_blacklist(jail[0])
+            ret[jail[0]] = self.disable_blacklist(jail[0])
+        return ret
 
     def change_general_config(self,
                               src_name: str = "",
                               src_email: str = "",
-                              dest_email: str = ""):
+                              dest_email: str = "") -> None:
         gen_config = Fail2banConfig().first()
 
         if src_name != "":
@@ -338,14 +386,14 @@ class Fail2banService:
             gen_config.dest_email = dest_email
         gen_config.save()
 
-    def change_dest_email(self, dest_email: str = ""):
+    def change_dest_email(self, dest_email: str = "") -> None:
         gen_config = Fail2banConfig().first()
         if dest_email != "" and '@' in parseaddr(dest_email)[1]:
             gen_config.dest_email = dest_email
             gen_config.save()
         DumpFail2banConfig().dump_sendmail_common()
 
-    def change_src_name(self, src_name: str = ""):
+    def change_src_name(self, src_name: str = "") -> None:
         gen_config = Fail2banConfig().first()
         if src_name != "":
             gen_config.src_name = src_name
@@ -360,7 +408,7 @@ class Fail2banService:
                     MailCleanerConfig.get_instance().get_value("CLIENTID"),
                     token))
 
-    def change_src_email(self, src_email: str = ""):
+    def change_src_email(self, src_email: str = "") -> None:
         gen_config = Fail2banConfig().first()
         if src_email != "" and '@' in parseaddr(src_email)[1]:
             gen_config.src_email = src_email

@@ -22,6 +22,7 @@ class InsertError(Enum):
     CREATED = 0
     UPDATED = 1
     BLACKLISTED = 2
+    UNCHANGED = 3
 
 
 class UpdateError(Enum):
@@ -57,6 +58,7 @@ class Fail2banDB:
             [int] -- 0 => Created
                      1 => Updated
                      2 => Blacklisted
+                     3 => Unchanged
         """
         Enum
         return_code = InsertError.CREATED.value
@@ -66,8 +68,11 @@ class Fail2banDB:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_ADD.value)
             exit
         if mc_ban_ip is not None:
+            print()
             if not mc_ban_ip.active:
                 return_code = self.update_row(ip, jail_name)
+            else:
+                return_code = InsertError.UNCHANGED.value
         else:
             test = Fail2banIps(ip=ip,
                                jail=jail_name,

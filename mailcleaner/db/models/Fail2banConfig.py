@@ -11,4 +11,5 @@ class Fail2banConfig(base, BaseModel):
     id = Column(Integer, primary_key=True)
     src_email = Column(String(150), nullable=False)
     src_name = Column(String(150), nullable=False)
-    dest_email = Column(String(150), nullable=True, default=True)
+    dest_email = Column(String(150), nullable=False)
+    chain = Column(String(150), nullable=False)
