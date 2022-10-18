@@ -2,15 +2,15 @@
 from setuptools import setup, find_packages
 
 setup(name='mailcleaner-library',
-      version='1.0.4',
+      version='1.0.6',
       description='MailCleaner Python Library',
       url='https://github.com/MailCleaner/python-mailcleaner-library',
-      author='Mentor Reka',
-      author_email='reka@mailcleaner.net',
+      author='MailCleaner Team',
+      author_email='support@mailcleaner.net',
       license='GPL',
       packages=find_packages(),
       install_requires=[
-          'Jinja2>=2.11.2,<=2.11.2',
+          'Jinja2>=3.1.2,<=3.1.2',
           'SQLAlchemy>=1.3.16,<=1.3.16',
           'PyMySQL>=0.9.3,<=0.9.3',
           'factory-boy>=2.12.0,<=2.12.0',
