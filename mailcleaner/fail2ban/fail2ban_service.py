@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import subprocess, sys, os
+import subprocess, sys, os, re
 import logging
 import requests
 import json
@@ -275,12 +275,36 @@ class Fail2banService:
                         jail.name, bl_ip.ip))
         self.treat_dumps()
 
+    def cron_running(self,pid_file) -> bool:
+        if os.path.exists(pid_file):
+            with open(pid_file, 'r') as f:
+                pid = f.readlines()
+                f.close()
+                pid[0].strip()
+                if os.path.exists("/proc/"+pid[0]+"/cmdline"):
+                    with open("/proc/"+pid[0]+"/cmdline", 'r') as p:
+                        cmd = p.readlines()
+                        p.close()
+                        if re.search("cron-job", cmd[0]):
+                            return True
+                else:
+                    os.remove(pid_file)
+        return False
+
     def treat_cron(self) -> None:
+        pid_file = "/var/mailcleaner/run/fail2ban_cron"
+        if self.cron_running(pid_file):
+            print("Cron task is already running")
+            exit();
+        with open(pid_file, 'w') as f:
+            f.write(str(os.getpid()))
+            f.close()
         self.__mcLogger.debug("Treat cron called")
         self.__ban_from_mysql()
         self.__unban_from_mysql()
         self.__whitelist_from_mysql()
         self.__blacklist_from_mysql()
+        os.remove(pid_file)
 
     def disable_jail(self, jail_name: str) -> bool:
         self.__mcLogger.debug("Disable jail {0}".format(jail_name))
