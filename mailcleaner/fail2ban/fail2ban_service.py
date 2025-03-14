@@ -65,7 +65,7 @@ class Fail2banService:
             ip: str = None,
             jail_name: str = None,
             db_insert: bool = True,
-            f2b_call: bool = False) -> dict:
+            f2b_call: bool = True) -> dict:
         """ 
             Ban an IP.
             Blacklist the IP, if it needs to
@@ -75,91 +75,115 @@ class Fail2banService:
             db_insert {bool} -- Needs to insert to DB,
             f2b_call {bool} -- Needs to call F2B):
         """
-        ret = {"code": 200, "response": ""}
         if ip == None:
             ip = self.ip
         if jail_name == None:
             jail_name = self.jail_name
 
-        if f2b_call:
-
-            ret_f2b = self.__safe_run("fail2ban-client status",
-                                      hide=True,
-                                      raise_failures=False).return_code
-            if ret_f2b == 0:
-                stat_ret = self.__safe_run(
-                    "fail2ban-client status {0} |grep {1}".format(
-                        jail_name, ip),
-                    hide=True,
-                    raise_failures=False).return_code
-                if stat_ret == 1:
-                    self.__safe_run("fail2ban-client set {0} banip {1}".format(
+        if re.match('^mc-(exim|ssh|webauth)$', jail_name) != None:
+            print("Running ban command on {0} group for ip {1}".format(jail_name, ip))
+            self.ban(ip, jail_name+'-1d', db_insert, f2b_call)
+            self.ban(ip, jail_name+'-1w', db_insert, f2b_call)
+            self.ban(ip, jail_name+'-1m', db_insert, f2b_call)
+            self.ban(ip, jail_name+'-1y', db_insert, f2b_call)
+        else:
+            ret = {"code": 200, "response": ""}
+            self.__mcLogger.info("Banning=>{0} inside jail=>{1}".format(
+                ip, jail_name))
+            ipset_ret = self.__safe_run("ipset add {0} {1}".format(
+                jail_name, ip),
+                hide=True,
+                raise_failures=False).return_code
+            if ipset_ret != 0:
+                ret["response"] = "Failed to add {0} to ipset with name {1}".format(
+                    ip, jail_name)
+            if f2b_call:
+                ret_f2b = self.__safe_run("fail2ban-client status",
+                                          hide=True,
+                                          raise_failures=False).return_code
+                if ret_f2b == 0:
+                    stat_ret = self.__safe_run(
+                        "fail2ban-client status {0} |grep {1}".format(
+                            jail_name, ip),
+                        hide=True,
+                        raise_failures=False).return_code
+                    if stat_ret == 1:
+                        self.__safe_run("fail2ban-client set {0} banip {1}".format(
+                            jail_name, ip),
+                            hide=True)
+                        ret["response"] = "Fail2Ban called properly"
+                    else:
+                        ret["response"] = "{0} is already banned in {1}".format(
+                            ip, jail_name)
+                else:
+                    ret["code"] = 503
+                    ret["response"] = "Unable to contact Fail2Ban. Is it running?"
+            if ret["code"] != 200:
+                self.__mcLogger.warn("".format(ret["code"], ret["response"], ip, jail_name))
+                return ret
+            if db_insert:
+                ret_db = self.fail2banDB.insert_row(ip, jail_name)
+                if ret_db == InsertError.BLACKLISTED.value:
+                    self.__mcLogger.warn("Blacklisting {0} from {1}".format(
+                        ip, jail_name))
+                    self.__safe_run("fail2ban-client set {0}-bl banip {1}".format(
                         jail_name, ip),
                                     hide=True)
-                    ret["response"] = "Fail2Ban called properly"
-                    return ret
-                else:
-                    ret["code"] = 409
-                    ret["response"] = "{0} is already banned in {1}".format(
+                    ret["response"] = "Blacklisting {0} from {1}".format(
                         ip, jail_name)
-                    return ret
+                elif ret_db == InsertError.CREATED.value:
+                    ret["response"] = "{0}:{1} correctly inserted in DB".format(
+                        ip, jail_name)
+                elif ret_db == InsertError.UNCHANGED.value:
+                    ret["code"] = 409
+                    ret["response"] = "{0}:{1} is already active in DB".format(
+                        ip, jail_name)
+            if ret["code"] != 200:
+                print("Error {0} ({1}) when inserting into DB {2} in {3}".format(
+                    ret["code"], ret["response"], ip, jail_name))
+                self.__mcLogger.warn("DEBUG: Error {0} ({1}) ".format(ret["code"], ret["response"], ip, jail_name))
             else:
-                ret["code"] = 503
-                ret["response"] = "Unable to contact Fail2Ban. Is it running?"
-                return ret
-
-        self.__mcLogger.info("Banning=>{0} inside jail=>{1}".format(
-            ip, jail_name))
-        if db_insert:
-            ret_db = self.fail2banDB.insert_row(ip, jail_name)
-            if ret_db == InsertError.BLACKLISTED.value:
-                self.__mcLogger.warn("Blacklisting {0} from {1}".format(
+                print("{0} banned successfully in {1}".format(
                     ip, jail_name))
-                self.__safe_run("fail2ban-client set {0}-bl banip {1}".format(
-                    jail_name, ip),
-                                hide=True)
-                ret["response"] = "Blacklisting {0} from {1}".format(
-                    ip, jail_name)
-            elif ret_db == InsertError.CREATED.value:
-                ret["response"] = "{0}:{1} correctly inserted in DB".format(
-                    ip, jail_name)
-            elif ret_db == InsertError.UNCHANGED.value:
-                ret["code"] = 409
-                ret["response"] = "{0}:{1} is already active in DB".format(
-                    ip, jail_name)
-        return ret
+            return ret
 
     def blacklist(self,
                   ip: str,
                   jail_name: str,
                   db_insert: str = True,
                   blacklisted: bool = True) -> None:
-        jail = Fail2banJail().find_by_name(jail_name)
-        if self.__safe_run(
-                "fail2ban-client status {0}-bl >> /dev/null 2>&1".format(
-                    jail_name),
-                raise_failures=False,
-                hide=True).return_code == 0:
-            if blacklisted:
-                self.__safe_run("fail2ban-client set {0}-bl banip {1}".format(
-                    jail_name, ip),
-                                hide=True)
-            else:
-                self.__safe_run(
-                    "fail2ban-client set {0}-bl unbanip {1}".format(
-                        jail_name, ip),
-                    hide=True)
+        if re.match('^mc-(exim|ssh|webauth)$', jail_name) != None:
+            print("Running blacklist command on {0} group for ip {1}".format(jail_name, ip))
+            self.blacklist(ip, jail_name+'-1d', db_insert, blacklisted)
+            self.blacklist(ip, jail_name+'-1w', db_insert, blacklisted)
+            self.blacklist(ip, jail_name+'-1m', db_insert, blacklisted)
+            self.blacklist(ip, jail_name+'-1y', db_insert, blacklisted)
         else:
-            self.__mcLogger.error(
-                "[{} - {}]: Trying to blacklist an IP. BL not activated".
-                format(jail_name, ip),
-                hide=True)
+            jail = Fail2banJail().find_by_name(jail_name)
+            if self.__safe_run(
+                    "fail2ban-client status {0}-bl >> /dev/null 2>&1".format(
+                        jail_name),
+                    raise_failures=False,
+                    hide=True).return_code == 0:
+                if blacklisted:
+                    self.__safe_run("fail2ban-client set {0}-bl banip {1}".format(
+                        jail_name, ip),
+                                    hide=True)
+                else:
+                    self.__safe_run(
+                        "fail2ban-client set {0}-bl unbanip {1}".format(
+                            jail_name, ip),
+                        hide=True)
+            else:
+                self.__mcLogger.error(
+                    "[{} - {}]: Trying to blacklist an IP. BL not activated".format(
+                        jail_name, ip))
 
     def unban(self,
               ip: str = None,
               jail_name: str = None,
               db_insert: bool = True,
-              f2b_call: bool = False) -> None:
+              f2b_call: bool = True) -> None:
         """ 
             Unban an IP.
         Arguments:
@@ -172,14 +196,62 @@ class Fail2banService:
             ip = self.ip
         if jail_name == None:
             jail_name = self.jail_name
-        self.__mcLogger.info("Unban=>{0} inside jail=>{1}".format(
-            ip, jail_name))
-        if f2b_call:
-            self.__safe_run("fail2ban-client set {0} unbanip {1}".format(
-                jail_name, ip))
+
+        if jail_name != None and re.match('^mc-(exim|ssh|webauth)$', jail_name) != None:
+            print("Running unban command on {0} group for {1}".format(jail_name, ip))
+            self.unban(ip, jail_name+'-1d', db_insert, f2b_call)
+            self.unban(ip, jail_name+'-1w', db_insert, f2b_call)
+            self.unban(ip, jail_name+'-1m', db_insert, f2b_call)
+            self.unban(ip, jail_name+'-1y', db_insert, f2b_call)
         else:
+            ret = {"code": 200, "response": ""}
+            self.__mcLogger.info("Unban=>{0} inside jail=>{1}".format(
+                ip, jail_name))
+            ipset_ret = self.__safe_run("ipset del {0} {1}".format(
+                jail_name, ip),
+                hide=True,
+                raise_failures=False)
+            if ipset_ret.return_code:
+                ret["response"] = "Failed to remove {0} from ipset with name {1}".format(
+                    ip, jail_name)
+                ret["code"] = 500
+            if f2b_call:
+                ret_f2b = self.__safe_run("fail2ban-client status",
+                    hide=True,
+                    raise_failures=False).return_code
+                if ret_f2b == 0:
+                    stat_ret = self.__safe_run(
+                        "fail2ban-client status {0} |grep {1}".format(
+                            jail_name, ip),
+                        hide=True,
+                        raise_failures=False).return_code
+                    if stat_ret == 1:
+                        ret["code"] = "500"
+                        ret["response"] = "{0} is not banned in {1}".format(
+                            ip, jail_name)
+                        print("{0} is not banned in {1}".format(
+                            ip, jail_name))
+                        self.__mcLogger.warn("{0} is not banned in {1}".format(
+                            ip, jail_name))
+                    else:
+                        print("Start unban")
+                        self.__safe_run("fail2ban-client set {0} unbanip {1}".format(
+                            jail_name, ip),
+                            hide=True)
+                        ret["response"] = "Fail2Ban called properly"
+                        print("Done unban")
+                else:
+                    ret["code"] = 503
+                    ret["response"] = "Unable to contact Fail2Ban. Is it running?"
             if db_insert:
                 self.fail2banDB.unban_row(ip, jail_name)
+            if ret["code"] != 200:
+                print("Error {0}: '{1}' for unban of {2} in {3}".format(
+                    ret["code"], ret["response"], ip, jail_name))
+            else:
+                print("{0} unbanned successfully in {1}".format(
+                    ip, jail_name))
+            return ret
 
     def __apply_func(self, func, **kwargs) -> None:
         """ Apply the ``func`` with kwargs arguments. The func should be one of Fail2banAction enum.
@@ -222,57 +294,73 @@ class Fail2banService:
                             })
 
     def whitelist(self, ip: str, jail_name: str) -> None:
-        self.fail2banDB.set_ip_jail_whitelisted(ip, jail_name)
-        if self.__safe_run(
-                "fail2ban-client get {0} ignoreip |sed 's/^.*- //'|grep '{1}'".
-                format(jail_name, ip),
-                hide=True,
-                raise_failures=False).return_code:
-            self.__safe_run("fail2ban-client set {0} addignoreip {1}".format(
-                jail_name, ip))
+        if re.match('^mc-(exim|ssh|webauth)$', jail_name) != None:
+            print("Running whitelist command on {0} group for ip {1}".format(jail_name, ip))
+            self.whitelist(ip, jail_name+'-1d')
+            self.whitelist(ip, jail_name+'-1w')
+            self.whitelist(ip, jail_name+'-1m')
+            self.whitelist(ip, jail_name+'-1y')
         else:
-            self.__mcLogger.info("{0} is already whitelisted in {1}".format(
-                ip, jail_name))
+            self.fail2banDB.set_ip_jail_whitelisted(ip, jail_name)
+            self.unban(ip, jail_name)
+            if self.__safe_run(
+                    "fail2ban-client get {0} ignoreip |sed 's/^.*- //'|grep '{1}'".
+                    format(jail_name, ip),
+                    hide=True,
+                    raise_failures=False).return_code:
+                self.__safe_run("fail2ban-client set {0} addignoreip {1}".format(
+                    jail_name, ip))
+            else:
+                self.__mcLogger.info("{0} is already whitelisted in {1}".format(
+                    ip, jail_name))
 
     def remove_from_whitelist(self, ip: str, jail_name: str) -> None:
-        if not self.__safe_run(
-                "fail2ban-client get {0} ignoreip |sed 's/^.*- //'|grep '{1}'".
-                format(jail_name, ip),
-                hide=True,
-                raise_failures=False).return_code:
-            self.__safe_run("fail2ban-client set {0} delignoreip {1}".format(
-                jail_name, ip))
+        if re.match('^mc-(exim|ssh|webauth)$', jail_name) != None:
+            print("Running unwhitelist command on {0} group for ip {1}".format(jail_name, ip))
+            self.remove_from_whitelist(ip, jail_name+'-1d')
+            self.remove_from_whitelist(ip, jail_name+'-1w')
+            self.remove_from_whitelist(ip, jail_name+'-1m')
+            self.remove_from_whitelist(ip, jail_name+'-1y')
         else:
-            self.__mcLogger.debug("{0} is already whitelisted in {1}".format(
-                ip, jail_name))
+            if not self.__safe_run(
+                    "fail2ban-client get {0} ignoreip |sed 's/^.*- //'|grep '{1}'".
+                    format(jail_name, ip),
+                    hide=True,
+                    raise_failures=False).return_code:
+                self.__safe_run("fail2ban-client set {0} delignoreip {1}".format(
+                    jail_name, ip))
+            else:
+                self.__mcLogger.debug("{0} is already whitelisted in {1}".format(
+                    ip, jail_name))
 
     def reload_fw(self) -> None:
         self.__mcLogger.debug("Reload Firewall called")
         conf = Fail2banConfig().first()
         jails = Fail2banJail().all()
         for jail in jails:
-            self.__safe_run("iptables -N fail2ban-{0}".format(jail.name))
-            self.__safe_run("iptables -A fail2ban-{0} -j RETURN".format(
+            self.__safe_run("iptables -w -N {0}".format(jail.name))
+            self.__safe_run("iptables -w -A {0} -j RETURN".format(
                 jail.name))
-            self.__safe_run(
-                "iptables -I {0} -p tcp -m multiport --dports {1} -j fail2ban-{2}"
-                .format(conf.chain, jail.port, jail.name))
-            self.__safe_run("iptables -N fail2ban-{0}-bl".format(jail.name))
-            self.__safe_run("iptables -A fail2ban-{0}-bl -j RETURN".format(
-                jail.name))
-            self.__safe_run(
-                "iptables -I {0} -p tcp -m multiport --dports {1} -j fail2ban-{2}-bl"
-                .format(conf.chain, jail.port, jail.name))
+            if (re.match('*,*', jail.port)) != None:
+                self.__safe_run(
+                    "iptables -w -I {0} -p tcp -m multiport --dports {1} -m set --match-set {2} src -j REJECT"
+                    .format(conf.chain, jail.port, jail.name))
+                self.__safe_run(
+                    "iptables -w -I {0} -p tcp -m multiport --dports {1} -m set --match-set {2} src -j LOG"
+                    .format(conf.chain, jail.port, jail.name))
+            else:
+                self.__safe_run(
+                    "iptables -w -I {0} -p tcp --dport {1} -m set --match-set {2} src -j REJECT"
+                    .format(conf.chain, jail.port, jail.name))
+                self.__safe_run(
+                    "iptables -w -I {0} -p tcp --dport {1} -m set --match-set {2} src -j LOG"
+                    .format(conf.chain, jail.port, jail.name))
             ips = Fail2banIps.get_all_active_by_jail(jail.name)
             for ip in ips:
                 self.__safe_run(
-                    "iptables -I fail2ban-{0} 1 -s {1} -j REJECT".format(
+                    "ipset add {0} {1}".format(
                         jail.name, ip.ip))
             bl_ips = Fail2banIps.find_by_blacklisted_and_jail(jail=jail.name)
-            for bl_ip in bl_ips:
-                self.__safe_run(
-                    "iptables -I fail2ban-{0}-bl 1 -s {1} -j REJECT".format(
-                        jail.name, bl_ip.ip))
         self.treat_dumps()
 
     def cron_running(self,pid_file) -> bool:
@@ -307,22 +395,28 @@ class Fail2banService:
         os.remove(pid_file)
 
     def disable_jail(self, jail_name: str) -> bool:
-        self.__mcLogger.debug("Disable jail {0}".format(jail_name))
-        Fail2banDB().set_jail_inactive(jail_name)
-        self.disable_blacklist(jail_name)
-        Fail2banDB().delete_all_rows_jail(jail_name)
-        DumpFail2banConfig().dump_jail(jail_name)
-        if self.__safe_run(
-                "fail2ban-client status {0} >> /dev/null 2>&1".format(
-                    jail_name),
-                raise_failures=False).return_code == 0:
+        if re.match('^mc-(exim|ssh|webauth)$', jail_name) != None:
+            self.disable_jail(jail_name+'-1d')
+            self.disable_jail(jail_name+'-1w')
+            self.disable_jail(jail_name+'-1m')
+            self.disable_jail(jail_name+'-1y')
+        else:
+            self.__mcLogger.debug("Disable jail {0}".format(jail_name))
+            Fail2banDB().set_jail_inactive(jail_name)
+            self.disable_blacklist(jail_name)
+            Fail2banDB().delete_all_rows_jail(jail_name)
+            DumpFail2banConfig().dump_jail(jail_name)
+            if self.__safe_run(
+                    "fail2ban-client status {0} >> /dev/null 2>&1".format(
+                        jail_name),
+                    raise_failures=False).return_code == 0:
+                self.__safe_run(
+                    "fail2ban-client stop {0} >> /dev/null 2>&1".format(jail_name),
+                    raise_failures=False)
             self.__safe_run(
-                "fail2ban-client stop {0} >> /dev/null 2>&1".format(jail_name),
-                raise_failures=False)
-        self.__safe_run(
-            "fail2ban-client -c {0}/etc/fail2ban/ reload {1} >> /dev/null 2>&1"
-            .format(MailCleanerConfig.get_instance().get_value("SRCDIR"),
-                    jail_name))
+                "fail2ban-client -c {0}/etc/fail2ban/ reload {1} >> /dev/null 2>&1"
+                .format(MailCleanerConfig.get_instance().get_value("SRCDIR"),
+                        jail_name))
 
     def disable_all_jails(self) -> dict:
         jails = Fail2banJail().get_jails()
@@ -332,14 +426,20 @@ class Fail2banService:
                 self.disable_jail(jail[0])
 
     def enable_jail(self, jail_name: str) -> bool:
-        self.__mcLogger.debug("Enable jail {0}".format(jail_name))
-        Fail2banDB().set_jail_active(jail_name)
-        DumpFail2banConfig().dump_jail(jail_name)
-        command = self.__safe_run(
-            "fail2ban-client -c {0}/etc/fail2ban/ reload {1}".format(
-                MailCleanerConfig.get_instance().get_value("SRCDIR"),
-                jail_name))
-        return command.return_code
+        if re.match('^mc-(exim|ssh|webauth)$', jail_name) != None:
+            self.enable_jail(jail_name+'-1d')
+            self.enable_jail(jail_name+'-1w')
+            self.enable_jail(jail_name+'-1m')
+            self.enable_jail(jail_name+'-1y')
+        else:
+            self.__mcLogger.debug("Enable jail {0}".format(jail_name))
+            Fail2banDB().set_jail_active(jail_name)
+            DumpFail2banConfig().dump_jail(jail_name)
+            command = self.__safe_run(
+                "fail2ban-client -c {0}/etc/fail2ban/ reload {1}".format(
+                    MailCleanerConfig.get_instance().get_value("SRCDIR"),
+                    jail_name))
+            return command.return_code
 
     def enable_all_jail(self) -> dict:
         jails = Fail2banJail().get_jails()

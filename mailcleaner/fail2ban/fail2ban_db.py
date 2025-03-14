@@ -68,7 +68,6 @@ class Fail2banDB:
             self.__log_and_dump(ip, jail_name, Fail2banAction.TO_ADD.value)
             exit
         if mc_ban_ip is not None:
-            print()
             if not mc_ban_ip.active:
                 return_code = self.update_row(ip, jail_name)
             else:

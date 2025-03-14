@@ -1,9 +1,8 @@
 from mailcleaner.db.models import Fail2banJail
 from mailcleaner.dumper import DumpFail2banConfig
 
-
-def test_dump_ssh_jail():
-    ssh_jail_name = "mc-ssh"
+def test_dump_ssh_1d_jail():
+    ssh_jail_name = "mc-ssh-1d"
     dump_fail2ban_config = DumpFail2banConfig()
 
     mc_jail = Fail2banJail.find_by_name(name=ssh_jail_name.replace('-', '_'))
